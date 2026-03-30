@@ -14,44 +14,55 @@ export interface DemoItem {
   component: React.ComponentType<any>;
 }
 
+export interface DemoSection {
+  title: string;
+  items: DemoItem[];
+}
+
 interface DemoNavigationProps {
-  demos: DemoItem[];
+  sections: DemoSection[];
   currentDemo: string;
   onDemoChange: (demoId: string) => void;
 }
 
 const DemoNavigation: React.FC<DemoNavigationProps> = ({
-  demos,
+  sections,
   currentDemo,
   onDemoChange,
 }) => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>表格功能演示</Text>
+      <Text style={styles.title}>CoolTable 功能演示</Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
       >
-        {demos.map((demo) => (
-          <TouchableOpacity
-            key={demo.id}
-            style={[
-              styles.demoButton,
-              currentDemo === demo.id && styles.activeDemoButton,
-            ]}
-            onPress={() => onDemoChange(demo.id)}
-          >
-            <Text
-              style={[
-                styles.demoButtonText,
-                currentDemo === demo.id && styles.activeDemoButtonText,
-              ]}
-            >
-              {demo.title}
-            </Text>
-            <Text style={styles.demoDescription}>{demo.description}</Text>
-          </TouchableOpacity>
+        {sections.map((section) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <View style={styles.sectionItems}>
+              {section.items.map((demo) => (
+                <TouchableOpacity
+                  key={demo.id}
+                  style={[
+                    styles.demoButton,
+                    currentDemo === demo.id && styles.activeDemoButton,
+                  ]}
+                  onPress={() => onDemoChange(demo.id)}
+                >
+                  <Text
+                    style={[
+                      styles.demoButtonText,
+                      currentDemo === demo.id && styles.activeDemoButtonText,
+                    ]}
+                  >
+                    {demo.title}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
         ))}
       </ScrollView>
     </View>
@@ -61,7 +72,7 @@ const DemoNavigation: React.FC<DemoNavigationProps> = ({
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#fff',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderBottomWidth: 1,
     borderBottomColor: '#e8e8e8',
   },
@@ -70,37 +81,43 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    marginBottom: 12,
+    marginBottom: 10,
   },
   scrollContent: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
+  },
+  section: {
+    marginRight: 16,
+  },
+  sectionTitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#999',
+    textTransform: 'uppercase',
+    marginBottom: 6,
+    paddingLeft: 4,
+  },
+  sectionItems: {
+    flexDirection: 'row',
   },
   demoButton: {
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 12,
-    borderRadius: 8,
-    minWidth: 120,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
     alignItems: 'center',
+    marginRight: 6,
   },
   activeDemoButton: {
     backgroundColor: '#1890ff',
   },
   demoButtonText: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 13,
+    fontWeight: '500',
     color: '#333',
-    marginBottom: 4,
   },
   activeDemoButtonText: {
     color: '#fff',
-  },
-  demoDescription: {
-    fontSize: 11,
-    color: '#666',
-    textAlign: 'center',
-    lineHeight: 14,
   },
 });
 

@@ -1,25 +1,44 @@
-// 常用数据生成工具
+// 电商场景数据生成工具
 
-// 随机选择数组中的元素
-export const randomChoice = <T>(arr: T[]): T => {
-  return arr[Math.floor(Math.random() * arr.length)];
-};
+export const randomChoice = <T>(arr: T[]): T =>
+  arr[Math.floor(Math.random() * arr.length)];
 
-// 生成随机整数
-export const randomInt = (min: number, max: number): number => {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-};
+export const randomInt = (min: number, max: number): number =>
+  Math.floor(Math.random() * (max - min + 1)) + min;
 
-// 生成随机日期字符串
-export const randomDate = (startYear = 2020, endYear = 2024): string => {
+export const randomDate = (startYear = 2024, endYear = 2025): string => {
   const year = randomInt(startYear, endYear);
   const month = String(randomInt(1, 12)).padStart(2, '0');
   const day = String(randomInt(1, 28)).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
 
-// 常用名字列表
-export const names = [
+// ===== 商品名 =====
+const productNames = [
+  'AirPods Pro 2',
+  'iPhone 15 手机壳',
+  '小米手环 8',
+  '机械键盘 K8',
+  'MacBook 支架',
+  'USB-C 扩展坞',
+  '无线充电器',
+  '降噪耳机 WH-1000',
+  '电动牙刷 T700',
+  'iPad 保护套',
+  'Switch 手柄',
+  '蓝牙音箱 Mini',
+  '便携显示器 15.6"',
+  '人体工学鼠标',
+  '4K 摄像头',
+  'Type-C 数据线 2m',
+  '手机支架',
+  '桌面加湿器',
+  '筋膜枪 Mini',
+  'LED 台灯',
+];
+
+const categories = ['数码配件', '手机周边', '电脑外设', '智能穿戴', '生活电器'];
+const customerNames = [
   '张三',
   '李四',
   '王五',
@@ -36,239 +55,268 @@ export const names = [
   '秦六',
   '许七',
   '何八',
-  '吕九',
-  '施十',
-  '张伟',
-  '王伟',
-  '王芳',
-  '李伟',
-  '李娜',
-  '张敏',
-  '李静',
-  '王静',
-  '刘伟',
-  '王秀英',
-  '陈伟',
-  '王丽',
-  '李秀英',
-  '张静',
+];
+const phones = [
+  '138****1234',
+  '139****5678',
+  '150****9012',
+  '186****3456',
+  '177****7890',
+  '155****2345',
+  '188****6789',
+  '136****0123',
 ];
 
-// 常用城市列表
-export const cities = [
-  '北京',
-  '上海',
-  '广州',
-  '深圳',
-  '杭州',
-  '成都',
-  '武汉',
-  '西安',
-  '南京',
-  '天津',
-  '苏州',
-  '重庆',
-  '长沙',
-  '青岛',
-  '大连',
-  '厦门',
-];
-
-// 常用部门列表
-export const departments = [
-  '技术部',
-  '产品部',
-  '设计部',
-  '运营部',
-  '市场部',
-  '销售部',
-  '人事部',
-  '财务部',
-  '法务部',
-  '行政部',
-  '客服部',
-  '品控部',
-];
-
-// 常用状态列表
-export const statuses = ['在职', '试用期', '离职'];
-export const onlineStatuses = ['online', 'offline', 'busy'];
-export const priorities = ['high', 'medium', 'low'];
-export const prioritiesCN = ['高', '中', '低'];
-
-// 常用技能标签
-export const skills = [
-  'React',
-  'Vue',
-  'Angular',
-  'JavaScript',
-  'TypeScript',
-  'Node.js',
-  'Python',
-  'Java',
-  'Go',
-  'PHP',
-  'Swift',
-  'Kotlin',
-  'Flutter',
-  'UI设计',
-  'UX设计',
-  'Figma',
-  'Sketch',
-  'Photoshop',
-  'Illustrator',
-  '产品策划',
-  '需求分析',
-  '数据分析',
-  '项目管理',
-  'Scrum',
-  'Agile',
-];
-
-// 生成基础用户数据
-export const generateBasicUsers = (count: number) => {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: randomChoice(names),
-    age: randomInt(22, 45),
-    city: randomChoice(cities),
-    score: randomInt(60, 100),
+// ===== 1. 商品列表 (BasicTable) =====
+export const generateProductList = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: productNames[i % productNames.length],
+    category: randomChoice(categories),
+    price: randomInt(19, 2999),
+    sales: randomInt(50, 9999),
   }));
-};
 
-// 生成员工数据
-export const generateEmployees = (count: number) => {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: randomChoice(names),
-    age: randomInt(22, 45),
-    department: randomChoice(departments),
-    salary: randomInt(8000, 30000),
-    email: `user${index + 1}@example.com`,
-    phone: `1${randomInt(30, 99)}****${String(randomInt(1000, 9999))}`,
-    status: randomChoice(statuses),
-    joinDate: randomDate(2020, 2024),
-  }));
-};
+// ===== 2. 收支明细 (Sortable) =====
+export const generateTransactions = (count: number) => {
+  let balance = randomInt(5000, 20000);
+  const descs = {
+    income: [
+      '工资到账',
+      '理财收益',
+      '红包收入',
+      '退款到账',
+      '转账收入',
+      '奖金',
+    ],
+    expense: [
+      '淘宝购物',
+      '外卖订单',
+      '话费充值',
+      '水电缴费',
+      '视频会员',
+      '打车费用',
+      '超市购物',
+      '咖啡',
+    ],
+  };
 
-// 生成学生成绩数据
-export const generateStudentScores = (count: number) => {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    name: randomChoice(names),
-    math: randomInt(60, 100),
-    english: randomInt(60, 100),
-    physics: randomInt(60, 100),
-    get total() {
-      return this.math + this.english + this.physics;
-    },
-  }));
-};
-
-// 生成销售数据
-export const generateSalesData = (count: number) => {
-  const months = [
-    'jan',
-    'feb',
-    'mar',
-    'apr',
-    'may',
-    'jun',
-    'jul',
-    'aug',
-    'sep',
-    'oct',
-    'nov',
-    'dec',
-  ];
-
-  return Array.from({ length: count }, (_, index) => {
-    const data: any = {
-      id: index + 1,
-      name: randomChoice(names),
-      department: randomChoice([
-        '华北区',
-        '华东区',
-        '华南区',
-        '西南区',
-        '西北区',
-      ]),
+  return Array.from({ length: count }, (_, i) => {
+    const type = Math.random() > 0.4 ? 'expense' : 'income';
+    const amount =
+      type === 'income' ? randomInt(100, 8000) : -randomInt(10, 2000);
+    balance += amount;
+    return {
+      id: i + 1,
+      date: randomDate(2025, 2025),
+      description: randomChoice(descs[type]),
+      type,
+      amount,
+      balance: Math.max(0, balance),
     };
+  });
+};
 
-    // 生成12个月的销售数据
-    months.forEach((month) => {
-      data[month] = randomInt(8000, 30000);
+// ===== 3. 订单列表 (Expandable) =====
+const orderStatuses = ['待付款', '待发货', '运输中', '已完成', '已取消'];
+
+export const generateOrderList = (count: number) =>
+  Array.from({ length: count }, (_, i) => {
+    const itemCount = randomInt(1, 3);
+    const items = Array.from({ length: itemCount }, (__, j) => {
+      const price = randomInt(29, 999);
+      const qty = randomInt(1, 3);
+      return {
+        id: `${i + 1}-${j + 1}`,
+        name: randomChoice(productNames),
+        spec:
+          randomChoice(['黑色', '白色', '银色', '蓝色']) +
+          ' / ' +
+          randomChoice(['标准版', '升级版', '旗舰版']),
+        price,
+        quantity: qty,
+        subtotal: price * qty,
+      };
     });
+    const total = items.reduce((s, it) => s + it.subtotal, 0);
 
+    return {
+      id: `ORD${String(20250001 + i)}`,
+      date: randomDate(2025, 2025),
+      status: randomChoice(orderStatuses),
+      total,
+      children: items,
+    };
+  });
+
+// ===== 4. 商品搜索 (EmptyState) =====
+export const generateSearchProducts = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: productNames[i % productNames.length],
+    category: randomChoice(categories),
+    price: randomInt(19, 2999),
+    stock: randomInt(0, 500),
+  }));
+
+// ===== 5. 多规格价格表 (FixedColumn) =====
+const clothingNames = [
+  '经典T恤',
+  '牛仔裤',
+  '连帽卫衣',
+  '运动短裤',
+  '休闲衬衫',
+  '羽绒马甲',
+  '针织毛衣',
+  '工装外套',
+];
+
+export const generateSizeChart = (count: number) => {
+  const sizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+  return Array.from({ length: count }, (_, i) => {
+    const base = randomInt(79, 299);
+    const data: any = {
+      id: i + 1,
+      name: clothingNames[i % clothingNames.length],
+    };
+    sizes.forEach((size, si) => {
+      data[size] = randomInt(0, 100) > 15 ? base + si * randomInt(5, 20) : 0;
+    });
     return data;
   });
 };
 
-// 生成任务数据
-export const generateTasks = (count: number) => {
-  const taskTitles = [
-    '完成用户注册功能',
-    '优化数据库查询性能',
-    '设计新版本UI界面',
-    '编写API文档',
-    '修复登录页面bug',
-    '实现支付功能',
-    '添加消息推送',
-    '优化页面加载速度',
-    '实现数据导出功能',
-    '完善用户权限系统',
-  ];
+// ===== 6. 售后工单 (RightFixed) =====
+const issueTypes = [
+  '质量问题',
+  '尺码不符',
+  '物流损坏',
+  '发错商品',
+  '色差较大',
+  '配件缺失',
+];
+const afterSaleStatuses = ['待处理', '处理中', '已退款', '已换货', '已关闭'];
 
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    title: randomChoice(taskTitles),
-    assignee: randomChoice(names),
-    priority: randomChoice(priorities),
-    status: randomChoice(['todo', 'inprogress', 'done']),
-    dueDate: randomDate(2024, 2025),
-    progress: randomInt(0, 100),
+export const generateAfterSales = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: `AS${String(100001 + i)}`,
+    product: randomChoice(productNames),
+    issue: randomChoice(issueTypes),
+    date: randomDate(2025, 2025),
+    status: randomChoice(afterSaleStatuses),
   }));
+
+// ===== 7. 会员管理 (CustomRender) =====
+const memberLevels = ['普通', '银卡', '金卡', '黑卡'];
+const memberTags = [
+  '高频消费',
+  '大额订单',
+  '好评达人',
+  '新品尝鲜',
+  '活动参与',
+  '分享达人',
+  '回头客',
+  '品质买家',
+];
+
+export const generateMembers = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: customerNames[i % customerNames.length],
+    phone: phones[i % phones.length],
+    level: randomChoice(memberLevels),
+    points: randomInt(100, 9999),
+    maxPoints: 10000,
+    totalSpend: randomInt(500, 50000),
+    tags: Array.from({ length: randomInt(2, 4) }, () =>
+      randomChoice(memberTags)
+    ),
+    joinDate: randomDate(2023, 2025),
+  }));
+
+// ===== 8. 购物车 (Interactive) =====
+export const generateCartItems = (count: number) =>
+  Array.from({ length: count }, (_, i) => ({
+    id: i + 1,
+    name: productNames[i % productNames.length],
+    spec:
+      randomChoice(['黑色', '白色', '银色']) +
+      ' / ' +
+      randomChoice(['标准版', '升级版']),
+    price: randomInt(29, 1999),
+    quantity: randomInt(1, 3),
+  }));
+
+// ===== 9. 商品库存 (Comprehensive) — 复用 generateProducts =====
+export const generateInventory = (count: number) => {
+  const statuses = ['在售', '缺货', '预售', '下架'];
+  const skuColors = ['黑色', '白色', '灰色', '蓝色'];
+  const skuSpecs = ['标准版', '升级版', '旗舰版'];
+
+  return Array.from({ length: count }, (_, i) => {
+    const basePrice = randomInt(50, 2000);
+    const childCount = randomInt(1, 3);
+    return {
+      id: i + 1,
+      name: productNames[i % productNames.length],
+      category: randomChoice(categories),
+      price: basePrice,
+      stock: randomInt(0, 500),
+      status: randomChoice(statuses),
+      children: Array.from({ length: childCount }, (__, ci) => ({
+        id: `${i + 1}-${ci + 1}`,
+        name: randomChoice(skuColors) + ' / ' + randomChoice(skuSpecs),
+        category: '',
+        price: basePrice + randomInt(-20, 50),
+        stock: randomInt(0, 100),
+        status: randomInt(0, 100) > 20 ? '在售' : '缺货',
+      })),
+    };
+  });
 };
 
-// 生成用户资料数据
-export const generateUserProfiles = (count: number) => {
-  return Array.from({ length: count }, (_, index) => ({
-    id: index + 1,
-    avatar: `https://i.pravatar.cc/100?img=${(index % 70) + 1}`,
-    name: randomChoice(names),
-    email: `user${index + 1}@example.com`,
-    status: randomChoice(onlineStatuses),
-    level: randomChoice(['SVIP', 'VIP', '普通']),
-    score: Number((Math.random() * 2 + 3).toFixed(1)), // 3.0-5.0
-    tags: Array.from({ length: randomInt(2, 4) }, () => randomChoice(skills)),
-    joinDate: randomDate(2020, 2024),
-    lastLogin: `2024-10-${String(randomInt(1, 14)).padStart(2, '0')} ${String(
-      randomInt(8, 18)
-    ).padStart(2, '0')}:${String(randomInt(0, 59)).padStart(2, '0')}`,
-  }));
-};
+// ===== 10. 交易流水 (Performance) =====
+const tradeTypes = ['消费', '退款', '充值', '提现', '转账'];
+const tradeTargets = [
+  '淘宝商城',
+  '京东自营',
+  '美团外卖',
+  '滴滴出行',
+  '微信好友',
+  '支付宝转账',
+  '话费充值',
+  '水电缴费',
+  '理财产品',
+  '信用卡还款',
+];
 
-// 排序工具函数
+export const generateTradeRecords = (count: number) =>
+  Array.from({ length: count }, (_, i) => {
+    const type = randomChoice(tradeTypes);
+    const isPositive = type === '退款' || type === '充值';
+    const amount = isPositive ? randomInt(10, 5000) : -randomInt(10, 5000);
+    return {
+      id: `TXN${String(1000001 + i)}`,
+      type,
+      target: randomChoice(tradeTargets),
+      amount,
+      date: randomDate(2024, 2025),
+    };
+  });
+
+// ===== 排序工具 =====
 export const sortData = <T>(
   data: T[],
   key: string,
   sort: 'asc' | 'desc'
-): T[] => {
-  return [...data].sort((a, b) => {
+): T[] =>
+  [...data].sort((a, b) => {
     const aVal = (a as any)[key];
     const bVal = (b as any)[key];
-
     if (typeof aVal === 'number' && typeof bVal === 'number') {
       return sort === 'asc' ? aVal - bVal : bVal - aVal;
     }
-
     const aStr = String(aVal).toLowerCase();
     const bStr = String(bVal).toLowerCase();
-
-    if (sort === 'asc') {
-      return aStr.localeCompare(bStr);
-    } else {
-      return bStr.localeCompare(aStr);
-    }
+    return sort === 'asc' ? aStr.localeCompare(bStr) : bStr.localeCompare(aStr);
   });
-};

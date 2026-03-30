@@ -2,55 +2,53 @@ import React, { useMemo } from 'react';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { generateBasicUsers } from '../utils/dataUtils';
+import { generateProductList } from '../utils/dataUtils';
+import { renderPrice } from '../utils/renderUtils';
 
 const BasicTableDemo: React.FC = () => {
-  const data = useMemo(() => generateBasicUsers(5), []);
+  const data = useMemo(() => generateProductList(15), []);
 
   const columns: ITableColumn[] = useMemo(
     () => [
       {
         key: 'name',
-        title: '姓名',
-        width: 80,
+        title: '商品名',
+        width: 140,
         align: 'left',
       },
       {
-        key: 'age',
-        title: '年龄',
-        width: 60,
-        align: 'center',
-      },
-      {
-        key: 'city',
-        title: '城市',
+        key: 'category',
+        title: '分类',
         width: 80,
         align: 'center',
       },
       {
-        key: 'score',
-        title: '分数',
-        width: 60,
+        key: 'price',
+        title: '价格',
+        width: 80,
+        align: 'right',
+        render: renderPrice,
+      },
+      {
+        key: 'sales',
+        title: '月销量',
+        width: 70,
         align: 'right',
       },
     ],
     []
   );
 
-  const features = [
-    '简洁的数据展示',
-    '列对齐设置（左对齐、居中、右对齐）',
-    '自定义列宽',
-    '基础样式配置',
-  ];
-
   return (
     <DemoLayout
-      title="基础表格"
-      description="展示最基本的表格功能，包含简单的数据展示和列对齐"
-      features={features}
+      title="商品列表"
+      description="展示基础商品信息，包含名称、分类、价格和月销量"
     >
-      <TableContainer data={data} columns={columns} flex />
+      <TableContainer
+        data={data}
+        columns={columns}
+        keyExtractor={(item) => String(item.id)}
+      />
     </DemoLayout>
   );
 };

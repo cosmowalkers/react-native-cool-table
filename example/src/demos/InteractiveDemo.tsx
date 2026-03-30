@@ -1,270 +1,165 @@
-import React, { useState, useCallback } from 'react';
-import { Text, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { generateTasks } from '../utils/dataUtils';
-import {
-  renderProgress,
-  renderPriority,
-  renderActionButtons,
-} from '../utils/renderUtils';
+import { generateCartItems } from '../utils/dataUtils';
 import { colors } from '../styles/commonStyles';
 
 const InteractiveDemo: React.FC = () => {
-  // 使用工具函数生成任务数据
-  const [data, setData] = useState(() => generateTasks(5));
+  const [data, setData] = useState(() => generateCartItems(6));
 
-  // 处理行点击
-  const handleRowPress = useCallback(
-    ({ item }: { item: any; rowIndex: number }) => {
-      Alert.alert(
-        '任务详情',
-        `任务: ${item.title}\n负责人: ${item.assignee}\n进度: ${item.progress}%\n截止时间: ${item.dueDate}`,
-        [
-          { text: '取消', style: 'cancel' },
-          {
-            text: '编辑',
-            onPress: () => Alert.alert('提示', '编辑功能开发中...'),
-          },
-        ]
-      );
-    },
-    []
-  );
+  const handleQuantityChange = useCallback((itemId: number, delta: number) => {
+    setData((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, quantity: Math.max(1, item.quantity + delta) }
+          : item
+      )
+    );
+  }, []);
 
-  // 处理状态变更
-  const handleStatusChange = useCallback(
-    (taskId: number, newStatus: string) => {
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.id === taskId
-            ? {
-                ...item,
-                status: newStatus,
-                progress:
-                  newStatus === 'done'
-                    ? 100
-                    : newStatus === 'todo'
-                    ? 0
-                    : item.progress,
-              }
-            : item
-        )
-      );
-      Alert.alert('成功', `任务状态已更新为: ${getStatusText(newStatus)}`);
-    },
-    []
-  );
+  const handleDelete = useCallback((itemId: number) => {
+    setData((prev) => prev.filter((item) => item.id !== itemId));
+  }, []);
 
-  // 处理优先级变更
-  const handlePriorityChange = useCallback(
-    (taskId: number, newPriority: string) => {
-      setData((prevData) =>
-        prevData.map((item) =>
-          item.id === taskId ? { ...item, priority: newPriority } : item
-        )
-      );
-      Alert.alert('成功', `优先级已更新为: ${getPriorityText(newPriority)}`);
-    },
-    []
-  );
+  const renderProduct = useCallback((params: any) => {
+    const { row } = params;
+    return (
+      <View style={styles.productInfo}>
+        <Text style={styles.productName} numberOfLines={1}>
+          {row.name}
+        </Text>
+        <Text style={styles.productSpec} numberOfLines={1}>
+          {row.spec}
+        </Text>
+      </View>
+    );
+  }, []);
 
-  // 获取状态文本
-  const getStatusText = (status: string) => {
-    const statusMap = {
-      todo: '待办',
-      inprogress: '进行中',
-      done: '已完成',
-    };
-    return statusMap[status as keyof typeof statusMap] || status;
-  };
+  const renderUnitPrice = useCallback((params: any) => {
+    const { row } = params;
+    return (
+      <Text style={styles.priceText}>
+        ¥{(row.price as number).toLocaleString()}
+      </Text>
+    );
+  }, []);
 
-  // 获取优先级文本
-  const getPriorityText = (priority: string) => {
-    const priorityMap = {
-      high: '高',
-      medium: '中',
-      low: '低',
-    };
-    return priorityMap[priority as keyof typeof priorityMap] || priority;
-  };
-
-  // 自定义优先级渲染（带点击事件）
-  const renderInteractivePriority = useCallback(
+  const renderQuantity = useCallback(
     (params: any) => {
-      const { val, row } = params;
-      const onPress = () => {
-        const config = {
-          high: '高',
-          medium: '中',
-          low: '低',
-        };
-        const currentText = config[val as keyof typeof config];
-
-        Alert.alert('修改优先级', `当前优先级: ${currentText}`, [
-          { text: '取消', style: 'cancel' },
-          {
-            text: '高',
-            onPress: () => handlePriorityChange(row.id, 'high'),
-          },
-          {
-            text: '中',
-            onPress: () => handlePriorityChange(row.id, 'medium'),
-          },
-          {
-            text: '低',
-            onPress: () => handlePriorityChange(row.id, 'low'),
-          },
-        ]);
-      };
-
-      return renderPriority(params, onPress);
-    },
-    [handlePriorityChange]
-  );
-
-  // 自定义状态渲染（带点击事件）
-  const renderInteractiveStatus = useCallback(
-    (params: any) => {
-      const { val, row } = params;
-      const statusConfig = {
-        todo: { color: '#d9d9d9', bgColor: '#f5f5f5', text: '待办' },
-        inprogress: {
-          color: colors.primary,
-          bgColor: '#e6f7ff',
-          text: '进行中',
-        },
-        done: { color: colors.success, bgColor: '#f6ffed', text: '已完成' },
-      };
-      const config = statusConfig[val as keyof typeof statusConfig];
-
+      const { row } = params;
       return (
-        <TouchableOpacity
-          style={[styles.statusBadge, { backgroundColor: config.bgColor }]}
-          onPress={() => {
-            Alert.alert('修改状态', `当前状态: ${config.text}`, [
-              { text: '取消', style: 'cancel' },
-              {
-                text: '待办',
-                onPress: () => handleStatusChange(row.id, 'todo'),
-              },
-              {
-                text: '进行中',
-                onPress: () => handleStatusChange(row.id, 'inprogress'),
-              },
-              {
-                text: '已完成',
-                onPress: () => handleStatusChange(row.id, 'done'),
-              },
-            ]);
-          }}
-        >
-          <Text style={[styles.statusText, { color: config.color }]}>
-            {config.text}
-          </Text>
+        <View style={styles.quantityRow}>
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => handleQuantityChange(row.id, -1)}
+          >
+            <Text style={styles.quantityButtonText}>-</Text>
+          </TouchableOpacity>
+          <Text style={styles.quantityValue}>{row.quantity}</Text>
+          <TouchableOpacity
+            style={styles.quantityButton}
+            onPress={() => handleQuantityChange(row.id, 1)}
+          >
+            <Text style={styles.quantityButtonText}>+</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    },
+    [handleQuantityChange]
+  );
+
+  const renderSubtotal = useCallback((params: any) => {
+    const { row } = params;
+    const subtotal = (row.price as number) * (row.quantity as number);
+    return (
+      <Text style={styles.subtotalText}>¥{subtotal.toLocaleString()}</Text>
+    );
+  }, []);
+
+  const renderDeleteAction = useCallback(
+    (params: any) => {
+      const { row } = params;
+      return (
+        <TouchableOpacity onPress={() => handleDelete(row.id)}>
+          <Text style={styles.deleteText}>删除</Text>
         </TouchableOpacity>
       );
     },
-    [handleStatusChange]
+    [handleDelete]
   );
 
-  // 自定义操作渲染
-  const renderActions = useCallback(
-    (params: any) => {
-      const actions = [
-        {
-          text: '开始',
-          onPress: (row: any) => {
-            Alert.alert('提示', `开始任务: ${row.title}`);
-            handleStatusChange(row.id, 'inprogress');
-          },
-        },
-        {
-          text: '完成',
-          onPress: (row: any) => {
-            Alert.alert('提示', `完成任务: ${row.title}`);
-            handleStatusChange(row.id, 'done');
-          },
-          style: { backgroundColor: colors.success },
-        },
-      ];
-      return renderActionButtons(params, actions);
-    },
-    [handleStatusChange]
+  const columns: ITableColumn[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        title: '商品',
+        width: 140,
+        align: 'left',
+        render: renderProduct,
+      },
+      {
+        key: 'price',
+        title: '单价',
+        width: 80,
+        align: 'right',
+        render: renderUnitPrice,
+      },
+      {
+        key: 'quantity',
+        title: '数量',
+        width: 100,
+        align: 'center',
+        render: renderQuantity,
+      },
+      {
+        key: 'subtotal',
+        title: '小计',
+        width: 80,
+        align: 'right',
+        render: renderSubtotal,
+      },
+      {
+        key: 'actions',
+        title: '操作',
+        width: 60,
+        align: 'center',
+        render: renderDeleteAction,
+      },
+    ],
+    [
+      renderProduct,
+      renderUnitPrice,
+      renderQuantity,
+      renderSubtotal,
+      renderDeleteAction,
+    ]
   );
 
-  // 列配置
-  const columns: ITableColumn[] = [
-    {
-      key: 'title',
-      title: '任务标题',
-      width: 150,
-      align: 'left',
-      textStyle: { fontWeight: '500' },
-      showArrow: true,
-    },
-    {
-      key: 'assignee',
-      title: '负责人',
-      width: 80,
-      align: 'center',
-    },
-    {
-      key: 'priority',
-      title: '优先级',
-      width: 80,
-      align: 'center',
-      render: renderInteractivePriority,
-    },
-    {
-      key: 'status',
-      title: '状态',
-      width: 90,
-      align: 'center',
-      render: renderInteractiveStatus,
-    },
-    {
-      key: 'progress',
-      title: '进度',
-      width: 100,
-      align: 'center',
-      render: renderProgress,
-    },
-    {
-      key: 'dueDate',
-      title: '截止时间',
-      width: 100,
-      align: 'center',
-    },
-    {
-      key: 'actions',
-      title: '操作',
-      width: 120,
-      align: 'center',
-      render: renderActions,
-    },
-  ];
+  const total = useMemo(
+    () => data.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [data]
+  );
 
-  const features = [
-    '点击行查看任务详情',
-    '点击优先级可修改',
-    '点击状态可切换',
-    '进度条可视化显示',
-    '操作按钮快速处理',
-    '实时数据更新',
-  ];
+  const summaryBar = (
+    <View style={styles.summaryBar}>
+      <Text style={styles.summaryLabel}>
+        合计: <Text style={styles.summaryTotal}>¥{total.toLocaleString()}</Text>
+      </Text>
+    </View>
+  );
 
   return (
     <DemoLayout
-      title="交互式表格"
-      description="支持行点击、单元格交互、状态修改等多种交互操作"
-      features={features}
+      title="购物车"
+      description="支持数量加减、删除商品、实时计算合计金额"
+      extraInfo={summaryBar}
     >
       <TableContainer
         data={data}
         columns={columns}
-        onPressRow={handleRowPress}
+        keyExtractor={(item) => String(item.id)}
         flex
       />
     </DemoLayout>
@@ -272,16 +167,79 @@ const InteractiveDemo: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  // 状态样式
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    alignSelf: 'center',
+  productInfo: {
+    paddingLeft: 8,
+    justifyContent: 'center',
   },
-  statusText: {
-    fontSize: 12,
+  productName: {
+    fontSize: 14,
     fontWeight: '500',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  productSpec: {
+    fontSize: 12,
+    color: colors.textLight,
+  },
+  priceText: {
+    fontSize: 14,
+    color: colors.text,
+    textAlign: 'right',
+  },
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quantityButton: {
+    width: 26,
+    height: 26,
+    borderRadius: 4,
+    backgroundColor: '#f0f0f0',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quantityButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  quantityValue: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+    marginHorizontal: 10,
+    minWidth: 20,
+    textAlign: 'center',
+  },
+  subtotalText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: colors.error,
+    textAlign: 'right',
+  },
+  deleteText: {
+    fontSize: 13,
+    color: colors.error,
+    fontWeight: '500',
+  },
+  summaryBar: {
+    marginTop: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#fffbe6',
+    borderRadius: 6,
+    alignItems: 'flex-end',
+  },
+  summaryLabel: {
+    fontSize: 15,
+    color: colors.text,
+    fontWeight: '500',
+  },
+  summaryTotal: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.error,
   },
 });
 

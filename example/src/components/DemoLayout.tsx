@@ -7,7 +7,6 @@ interface DemoLayoutProps {
   description: string;
   children: React.ReactNode;
   extraInfo?: React.ReactNode;
-  features?: string[];
   scrollable?: boolean;
 }
 
@@ -16,7 +15,6 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({
   description,
   children,
   extraInfo,
-  features,
   scrollable = false,
 }) => {
   const content = (
@@ -26,19 +24,7 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({
         <Text style={commonStyles.description}>{description}</Text>
         {extraInfo}
       </View>
-
       {children}
-
-      {features && features.length > 0 && (
-        <View style={commonStyles.features}>
-          <Text style={commonStyles.featuresTitle}>功能特点：</Text>
-          {features.map((feature) => (
-            <Text key={feature} style={commonStyles.featureItem}>
-              • {feature}
-            </Text>
-          ))}
-        </View>
-      )}
     </>
   );
 

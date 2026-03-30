@@ -5,13 +5,15 @@ import React, {
   useEffect,
   useRef,
 } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { generateEmployees } from '../utils/dataUtils';
-import { renderSalaryK, renderStatusBadge } from '../utils/renderUtils';
-import { colors, commonStyles } from '../styles/commonStyles';
+import { generateTradeRecords } from '../utils/dataUtils';
+import { renderSignedAmount } from '../utils/renderUtils';
+import { colors } from '../styles/commonStyles';
+
+const dataSizeOptions = [100, 500, 1000, 5000];
 
 const PerformanceDemo: React.FC = () => {
   const [dataSize, setDataSize] = useState(100);
@@ -20,7 +22,7 @@ const PerformanceDemo: React.FC = () => {
 
   const data = useMemo(() => {
     startTimeRef.current = Date.now();
-    return generateEmployees(dataSize);
+    return generateTradeRecords(dataSize);
   }, [dataSize]);
 
   useEffect(() => {
@@ -31,88 +33,44 @@ const PerformanceDemo: React.FC = () => {
     setDataSize(size);
   }, []);
 
-  // 处理行点击
-  const handleRowPress = useCallback(({ item }: { item: any }) => {
-    Alert.alert('用户信息', `姓名: ${item.name}\n邮箱: ${item.email}`);
-  }, []);
-
-  // 列配置（优化版本）
   const columns: ITableColumn[] = useMemo(
     () => [
       {
         key: 'id',
-        title: 'ID',
+        title: '交易号',
+        width: 120,
+        align: 'left',
+        textStyle: { fontWeight: 'bold' },
+      },
+      {
+        key: 'type',
+        title: '类型',
         width: 60,
         align: 'center',
       },
       {
-        key: 'name',
-        title: '姓名',
-        width: 80,
-        align: 'left',
-        fixed: true,
-      },
-      {
-        key: 'email',
-        title: '邮箱',
-        width: 150,
-        align: 'left',
-      },
-      {
-        key: 'age',
-        title: '年龄',
-        width: 60,
-        align: 'center',
-      },
-      {
-        key: 'city',
-        title: '城市',
-        width: 80,
-        align: 'center',
-      },
-      {
-        key: 'salary',
-        title: '薪资',
-        width: 80,
-        align: 'right',
-        render: renderSalaryK,
-      },
-      {
-        key: 'department',
-        title: '部门',
-        width: 80,
-        align: 'center',
-      },
-      {
-        key: 'joinDate',
-        title: '入职日期',
+        key: 'target',
+        title: '对方',
         width: 100,
-        align: 'center',
+        align: 'left',
       },
       {
-        key: 'status',
-        title: '状态',
-        width: 80,
+        key: 'amount',
+        title: '金额',
+        width: 90,
+        align: 'right',
+        render: renderSignedAmount,
+      },
+      {
+        key: 'date',
+        title: '时间',
+        width: 90,
         align: 'center',
-        render: renderStatusBadge,
       },
     ],
     []
   );
 
-  // 数据量选项
-  const dataSizeOptions = [100, 500, 1000, 2000, 5000];
-
-  const features = [
-    '虚拟化滚动（仅渲染可见行）',
-    'useMemo 优化列配置',
-    'useCallback 优化渲染函数',
-    '固定列性能优化',
-    '大数据量流畅滚动',
-    '内存使用优化',
-  ];
-
-  // 控制面板组件
   const controlPanel = (
     <View style={styles.controls}>
       <Text style={styles.controlLabel}>数据量:</Text>
@@ -137,43 +95,44 @@ const PerformanceDemo: React.FC = () => {
           </TouchableOpacity>
         ))}
       </View>
-      <View style={styles.stats}>
-        <Text style={styles.statsText}>
+      <View style={styles.timerDisplay}>
+        <Text style={styles.timerLabel}>
           当前数据量: {dataSize.toLocaleString()} 条
         </Text>
         {renderTime !== null && (
-          <Text style={styles.statsText}>渲染耗时: {renderTime}ms</Text>
+          <Text style={styles.timerValue}>渲染耗时: {renderTime}ms</Text>
         )}
       </View>
     </View>
   );
 
-  // 性能优化建议组件
-  const performanceTips = (
-    <View style={styles.performanceTips}>
-      <Text style={styles.tipsTitle}>性能优化建议：</Text>
+  const tipsCard = (
+    <View style={styles.tipsCard}>
+      <Text style={styles.tipsTitle}>性能优化建议:</Text>
       <Text style={styles.tipItem}>1. 使用 keyExtractor 提供稳定的 key</Text>
       <Text style={styles.tipItem}>2. 避免在 render 函数中创建新对象</Text>
-      <Text style={styles.tipItem}>3. 使用 memo 包装自定义渲染组件</Text>
-      <Text style={styles.tipItem}>4. 合理设置 initialNumToRender</Text>
+      <Text style={styles.tipItem}>
+        3. 使用 useMemo / useCallback 缓存列和渲染
+      </Text>
+      <Text style={styles.tipItem}>
+        4. 合理设置 initialNumToRender 控制首屏数量
+      </Text>
     </View>
   );
 
   return (
     <DemoLayout
-      title="性能测试表格"
-      description="测试大数据量下的表格渲染性能，包含固定列和自定义渲染"
+      title="交易流水"
+      description="测试大数据量下的表格渲染性能，支持切换不同数据量"
       extraInfo={controlPanel}
-      features={features}
       scrollable
     >
       <TableContainer
         data={data}
         columns={columns}
-        onPressRow={handleRowPress}
-        style={commonStyles.rowSmall}
+        keyExtractor={(item) => String(item.id)}
       />
-      {performanceTips}
+      {tipsCard}
     </DemoLayout>
   );
 };
@@ -195,7 +154,7 @@ const styles = StyleSheet.create({
   },
   sizeButton: {
     backgroundColor: '#f5f5f5',
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 6,
     marginRight: 8,
@@ -205,24 +164,29 @@ const styles = StyleSheet.create({
     backgroundColor: colors.primary,
   },
   sizeButtonText: {
-    fontSize: 12,
+    fontSize: 13,
     color: colors.text,
     fontWeight: '500',
   },
   activeSizeButtonText: {
     color: colors.white,
   },
-  stats: {
+  timerDisplay: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  statsText: {
+  timerLabel: {
     fontSize: 12,
-    color: colors.primary,
+    color: colors.textSecondary,
     fontWeight: '500',
   },
-  performanceTips: {
+  timerValue: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  tipsCard: {
     margin: 16,
     marginTop: 0,
     padding: 12,

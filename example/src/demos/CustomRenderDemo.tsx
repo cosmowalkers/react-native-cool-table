@@ -1,44 +1,43 @@
-import React, { useCallback } from 'react';
-import { View, Text, StyleSheet, Image, Alert } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
+import { View, Text, StyleSheet, Alert } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { generateUserProfiles } from '../utils/dataUtils';
+import { generateMembers } from '../utils/dataUtils';
 import {
-  renderStatusBadge,
-  renderActionButtons,
+  renderInitialsAvatar,
+  renderPointsProgress,
+  renderPrice,
   renderTags,
+  renderActionButtons,
 } from '../utils/renderUtils';
 import { colors } from '../styles/commonStyles';
 
 const CustomRenderDemo: React.FC = () => {
-  // 使用工具函数生成用户数据
-  const data = generateUserProfiles(4);
+  const data = useMemo(() => generateMembers(10), []);
 
-  // 自定义头像渲染
-  const renderAvatar = useCallback((params: any) => {
+  const renderMemberInfo = useCallback((params: any) => {
     const { row } = params;
     return (
-      <View style={styles.avatarContainer}>
-        <Image source={{ uri: row.avatar }} style={styles.avatar} />
-        <View style={styles.userInfo}>
-          <Text style={styles.userName}>{row.name}</Text>
-          <Text style={styles.userEmail}>{row.email}</Text>
+      <View style={styles.memberInfoContainer}>
+        {renderInitialsAvatar({ ...params, val: row.name })}
+        <View style={styles.memberDetail}>
+          <Text style={styles.memberName}>{row.name}</Text>
+          <Text style={styles.memberPhone}>{row.phone}</Text>
         </View>
       </View>
     );
   }, []);
 
-  // 自定义等级渲染
   const renderLevel = useCallback((params: any) => {
     const { val } = params;
-    const levelConfig = {
-      SVIP: { color: '#722ed1', bgColor: '#f9f0ff' },
-      VIP: { color: colors.warning, bgColor: '#fff7e6' },
-      普通: { color: colors.textSecondary, bgColor: '#f5f5f5' },
+    const levelConfig: Record<string, { color: string; bgColor: string }> = {
+      普通: { color: '#999', bgColor: '#f5f5f5' },
+      银卡: { color: '#8c8c8c', bgColor: '#f5f5f5' },
+      金卡: { color: '#d4b106', bgColor: '#fffbe6' },
+      黑卡: { color: '#fff', bgColor: '#262626' },
     };
-    const config =
-      levelConfig[val as keyof typeof levelConfig] || levelConfig['普通'];
+    const config = levelConfig[val as string] ?? levelConfig['普通'];
 
     return (
       <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
@@ -47,156 +46,102 @@ const CustomRenderDemo: React.FC = () => {
     );
   }, []);
 
-  // 自定义评分渲染
-  const renderScore = useCallback((params: any) => {
-    const { val } = params;
-    const stars = Math.floor(val);
-    const hasHalfStar = val % 1 !== 0;
-
-    return (
-      <View style={styles.scoreContainer}>
-        <View style={styles.starsContainer}>
-          {[...Array(5)].map((_, index) => (
-            <Text
-              key={index}
-              style={[
-                styles.star,
-                {
-                  color:
-                    index < stars
-                      ? '#fadb14'
-                      : index === stars && hasHalfStar
-                      ? '#fadb14'
-                      : '#d9d9d9',
-                },
-              ]}
-            >
-              ★
-            </Text>
-          ))}
-        </View>
-        <Text style={styles.scoreText}>{val}</Text>
-      </View>
-    );
-  }, []);
-
-  // 自定义操作按钮渲染
   const renderActions = useCallback((params: any) => {
     const actions = [
       {
-        text: '编辑',
-        onPress: (row: any) => Alert.alert('编辑', `编辑用户: ${row.name}`),
-      },
-      {
-        text: '删除',
-        onPress: (row: any) => Alert.alert('删除', `删除用户: ${row.name}`),
-        style: { backgroundColor: colors.error },
+        text: '详情',
+        onPress: (row: any) =>
+          Alert.alert(
+            '会员详情',
+            `姓名: ${row.name}\n等级: ${row.level}\n积分: ${row.points}`
+          ),
       },
     ];
     return renderActionButtons(params, actions);
   }, []);
 
-  // 列配置
-  const columns: ITableColumn[] = [
-    {
-      key: 'avatar',
-      title: '用户信息',
-      width: 200,
-      align: 'left',
-      render: renderAvatar,
-    },
-    {
-      key: 'status',
-      title: '状态',
-      width: 80,
-      align: 'center',
-      render: renderStatusBadge,
-    },
-    {
-      key: 'level',
-      title: '等级',
-      width: 80,
-      align: 'center',
-      render: renderLevel,
-    },
-    {
-      key: 'score',
-      title: '评分',
-      width: 100,
-      align: 'center',
-      render: renderScore,
-    },
-    {
-      key: 'tags',
-      title: '标签',
-      width: 120,
-      align: 'left',
-      render: renderTags,
-    },
-    {
-      key: 'joinDate',
-      title: '加入时间',
-      width: 100,
-      align: 'center',
-    },
-    {
-      key: 'actions',
-      title: '操作',
-      width: 120,
-      align: 'center',
-      render: renderActions,
-    },
-  ];
-
-  const features = [
-    '头像 + 用户信息组合显示',
-    '状态指示器（在线/离线/忙碌）',
-    '等级徽章样式',
-    '星级评分显示',
-    '标签列表（支持省略显示）',
-    '操作按钮组',
-    '完全自定义单元格内容',
-  ];
+  const columns: ITableColumn[] = useMemo(
+    () => [
+      {
+        key: 'name',
+        title: '会员信息',
+        width: 160,
+        align: 'left',
+        render: renderMemberInfo,
+      },
+      {
+        key: 'level',
+        title: '等级',
+        width: 70,
+        align: 'center',
+        render: renderLevel,
+      },
+      {
+        key: 'points',
+        title: '积分',
+        width: 90,
+        align: 'center',
+        render: renderPointsProgress,
+      },
+      {
+        key: 'totalSpend',
+        title: '累计消费',
+        width: 90,
+        align: 'right',
+        render: renderPrice,
+      },
+      {
+        key: 'tags',
+        title: '标签',
+        width: 120,
+        align: 'left',
+        render: renderTags,
+      },
+      {
+        key: 'actions',
+        title: '操作',
+        width: 100,
+        align: 'center',
+        render: renderActions,
+      },
+    ],
+    [renderMemberInfo, renderLevel, renderActions]
+  );
 
   return (
     <DemoLayout
-      title="自定义渲染表格"
-      description="展示各种自定义单元格渲染，包括头像、状态、等级、评分、标签和操作按钮"
-      features={features}
+      title="会员管理"
+      description="展示会员头像、等级徽章、积分进度、消费金额、标签等自定义渲染"
+      scrollable
     >
-      <TableContainer data={data} columns={columns} flex />
+      <TableContainer
+        data={data}
+        columns={columns}
+        keyExtractor={(item) => String(item.id)}
+      />
     </DemoLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  // 头像相关样式
-  avatarContainer: {
+  memberInfoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingLeft: 8,
   },
-  avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    marginRight: 12,
-  },
-  userInfo: {
+  memberDetail: {
     flex: 1,
   },
-  userName: {
+  memberName: {
     fontSize: 14,
     fontWeight: 'bold',
     color: colors.text,
     marginBottom: 2,
   },
-  userEmail: {
+  memberPhone: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: colors.textLight,
   },
-
-  // 等级相关样式
   levelBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -206,24 +151,6 @@ const styles = StyleSheet.create({
   levelText: {
     fontSize: 12,
     fontWeight: 'bold',
-  },
-
-  // 评分相关样式
-  scoreContainer: {
-    alignItems: 'center',
-  },
-  starsContainer: {
-    flexDirection: 'row',
-    marginBottom: 2,
-  },
-  star: {
-    fontSize: 12,
-    marginHorizontal: 1,
-  },
-  scoreText: {
-    fontSize: 11,
-    color: colors.textSecondary,
-    fontWeight: '500',
   },
 });
 
