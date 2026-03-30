@@ -1,4 +1,4 @@
-import type { FlexAlignType, ImageStyle, StyleProp } from 'react-native';
+import type { FlexAlignType } from 'react-native';
 
 export const ALIGN_MAP: Record<string, FlexAlignType> = {
   left: 'flex-start',
@@ -14,12 +14,3 @@ export const SORT_STATUS_MAP = {
 } as const;
 
 export const EMPTY_IMAGE = require('../assets/empty.png');
-
-export const ICON_MAP: Record<
-  string,
-  { source: { uri: string }; style: StyleProp<ImageStyle> }
-> = {
-  sortDesc: { source: require('../assets/404.png'), style: {} },
-  sortAsc: { source: require('../assets/404.png'), style: {} },
-  expand: { source: require('../assets/404.png'), style: {} },
-} as const;

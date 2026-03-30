@@ -6,6 +6,7 @@ import type {
   ImageStyle,
   LayoutChangeEvent,
   Animated,
+  FlatListProps,
 } from 'react-native';
 
 type TAnyObject = Record<string, any>;
@@ -49,6 +50,7 @@ export type TExpandable = {
   rowStyle?: StyleProp<ViewStyle>;
   style?: StyleProp<ViewStyle>;
   animationDuration?: number;
+  maxHeight?: number;
   autoCollapseOthers?: boolean;
   onPressRow?: (params: { item: any; rowIndex: number }) => void;
   renderItem?: (params: {
@@ -94,7 +96,7 @@ export interface ITableColumn {
   hStyle?: StyleProp<ViewStyle>; // 头部样式
   hTextStyle?: StyleProp<TextStyle>; // 头部文字样式
   keySplitSymbol?: string; // key分隔符
-  fixed?: boolean;
+  fixed?: boolean | 'left' | 'right';
   secondTextStyle?: StyleProp<TextStyle>; // 单元格第二层文本的style
   showArrow?: boolean; // 是否显示箭头
   touchStyle?: StyleProp<ViewStyle>; // 点击区域style;
@@ -115,7 +117,7 @@ export interface ITableProps extends ICommonTableProps {
   headerRowStyle?: StyleProp<ViewStyle>;
   FooterComponent?: React.ReactNode;
   EmptyComponent?: React.ReactNode;
-  flatListProps?: React.ComponentType<any> | React.ReactElement | null;
+  flatListProps?: Partial<FlatListProps<TItem>>;
   emptyWrapperStyle?: StyleProp<ViewStyle>;
   emptyProps?: IEmptyProps;
   treeConfig?: TExpandable;
@@ -144,6 +146,7 @@ export interface ITableSortProps {
 export interface ITableStaticContextValue {
   columns: ITableColumn[];
   positionX: Animated.Value;
+  contentWidth: number;
   treeConfig?: TExpandable;
   rowStyle?: StyleProp<ViewStyle>;
   onSortChange?: (params: {

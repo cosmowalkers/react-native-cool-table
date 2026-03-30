@@ -13,6 +13,13 @@ import { ALIGN_MAP } from '../../constant';
 import Cell from '../Cell';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
+import type { ITableColumn } from '../../types';
+
+const isFixedLeft = (fixed: ITableColumn['fixed']): boolean =>
+  fixed === true || fixed === 'left';
+
+const isFixedRight = (fixed: ITableColumn['fixed']): boolean =>
+  fixed === 'right';
 
 const Row = (
   {
@@ -26,7 +33,8 @@ const Row = (
   }: ITableRowProps,
   _ref: any
 ) => {
-  const { columns, positionX, treeConfig, rowStyle } = useTableStatic();
+  const { columns, positionX, contentWidth, treeConfig, rowStyle } =
+    useTableStatic();
   const { isExpanded, toggleExpand } = useTableState();
 
   const expanded = isExpanded(rowKeyValue);
@@ -93,7 +101,8 @@ const Row = (
         value = customVal({ val: value, ...commonParams });
       }
 
-      const alignRes = ALIGN_MAP[fixed || isFirst ? 'left' : align];
+      const alignRes =
+        ALIGN_MAP[isFixedLeft(fixed) || isFirst ? 'left' : align];
 
       const _cellStyle: ViewStyle[] = [
         styles.cell,
@@ -122,19 +131,46 @@ const Row = (
         ? renderer({ val: value, defaultRender, ...commonParams })
         : defaultRender();
 
-      return fixed ? (
-        <Animated.View
-          key={`table-column-${rowIndex}-${colIndex}`}
-          style={[
-            styles.fixed_cell,
-            { transform: [{ translateX: positionX }] },
-            _cellStyle,
-            cellStyle,
-          ]}
-        >
-          {cell}
-        </Animated.View>
-      ) : (
+      if (isFixedLeft(fixed)) {
+        return (
+          <Animated.View
+            key={`table-column-${rowIndex}-${colIndex}`}
+            style={[
+              styles.fixed_cell,
+              { transform: [{ translateX: positionX }] },
+              _cellStyle,
+              cellStyle,
+            ]}
+          >
+            {cell}
+          </Animated.View>
+        );
+      }
+
+      if (isFixedRight(fixed)) {
+        const rightFixedWidth = columns
+          .filter((c) => c.fixed === 'right')
+          .reduce((sum, c) => sum + (Number(c.width) || 0), 0);
+        const rightTranslateX = Animated.add(
+          positionX,
+          contentWidth - rightFixedWidth
+        );
+        return (
+          <Animated.View
+            key={`table-column-${rowIndex}-${colIndex}`}
+            style={[
+              styles.fixed_cell,
+              { transform: [{ translateX: rightTranslateX }] },
+              _cellStyle,
+              cellStyle,
+            ]}
+          >
+            {cell}
+          </Animated.View>
+        );
+      }
+
+      return (
         <View
           key={`table-column-${rowIndex}-${colIndex}`}
           style={[_cellStyle, cellStyle]}
@@ -151,6 +187,7 @@ const Row = (
     depth,
     hasHeaderMultipleLine,
     positionX,
+    contentWidth,
     _onExpandChange,
     expanded,
   ]);
@@ -193,7 +230,13 @@ const Row = (
     }
 
     return (
-      <View style={[styles.expand, treeConfig?.style]}>
+      <View
+        style={[
+          styles.expand,
+          { maxHeight: treeConfig?.maxHeight ?? 200 },
+          treeConfig?.style,
+        ]}
+      >
         <ScrollView nestedScrollEnabled>
           {data?.children?.map((item, index) =>
             isFunction(treeConfig?.renderItem)

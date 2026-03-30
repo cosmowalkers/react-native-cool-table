@@ -76,14 +76,22 @@ const Table = (
   const [contentWidth, setContentWidth] = useState(0);
   const [positionX] = useState(new Animated.Value(0));
 
-  const [sortState, setSortState] = useState<TSortState>(null);
+  const [sortState, setSortState] = useState<TSortState>(() => {
+    const col = columns.find((c) => c.defaultSort);
+    return col?.defaultSort
+      ? { columnKey: col.key, sort: col.defaultSort }
+      : null;
+  });
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setColumns(() => {
-      const fixed = columns.filter((c) => c.fixed);
+      const fixedLeft = columns.filter(
+        (c) => c.fixed === true || c.fixed === 'left'
+      );
+      const fixedRight = columns.filter((c) => c.fixed === 'right');
       const normal = columns.filter((c) => !c.fixed);
-      return [...fixed, ...normal];
+      return [...fixedLeft, ...normal, ...fixedRight];
     });
   }, [columns]);
 
@@ -125,11 +133,12 @@ const Table = (
     () => ({
       columns: _columns,
       positionX,
+      contentWidth,
       treeConfig,
       rowStyle,
       onSortChange,
     }),
-    [_columns, positionX, treeConfig, rowStyle, onSortChange]
+    [_columns, positionX, contentWidth, treeConfig, rowStyle, onSortChange]
   );
 
   const stateValue = useMemo<ITableStateContextValue>(

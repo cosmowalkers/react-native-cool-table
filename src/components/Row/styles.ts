@@ -9,7 +9,6 @@ const styles = StyleSheet.create({
   },
   expand: {
     overflow: 'hidden',
-    maxHeight: 200,
   },
   cell: {
     flex: 1,

@@ -28,6 +28,7 @@ const Cell = ({
     showArrow,
     touchStyle,
     onPress,
+    onSort,
   } = col;
 
   const { sortState, setSortState } = useTableState();
@@ -54,6 +55,7 @@ const Cell = ({
           ? SORT_STATUS_MAP.asc
           : SORT_STATUS_MAP.desc;
       setSortState({ columnKey: key, sort: nextSort });
+      onSort?.();
       return;
     }
     if (isShowExpand) {
@@ -69,6 +71,7 @@ const Cell = ({
     currentSort,
     key,
     setSortState,
+    onSort,
     onExpandChange,
     onPress,
     val,
