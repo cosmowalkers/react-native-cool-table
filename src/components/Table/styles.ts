@@ -12,6 +12,13 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     backgroundColor: '#fff',
   },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 999,
+  },
 });
 
 export default styles;

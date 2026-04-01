@@ -32,8 +32,14 @@ const styles = StyleSheet.create({
     borderTopColor: '#d9d9d9',
   },
   triangleActive: {
-    borderBottomColor: '#1890ff', // 向上箭头激活色
-    borderTopColor: '#1890ff', // 向下箭头激活色
+    borderBottomColor: '#1890ff',
+    borderTopColor: '#1890ff',
+  },
+  sortIndex: {
+    fontSize: 8,
+    color: '#1890ff',
+    marginLeft: 1,
+    lineHeight: 10,
   },
 });
 

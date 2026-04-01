@@ -2,18 +2,17 @@ import React, { forwardRef, memo, useCallback, useMemo } from 'react';
 import {
   Animated,
   View,
-  ViewStyle,
   TouchableWithoutFeedback,
   LayoutAnimation,
   ScrollView,
 } from 'react-native';
-import type { ITableRowProps, TItem } from '../../types';
+import type { ViewStyle } from 'react-native';
+import type { ITableRowProps, TItem, ITableColumn } from '../../types';
 import { isArray, isEmpty, isFunction } from 'lodash';
 import { ALIGN_MAP } from '../../constant';
 import Cell from '../Cell';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
-import type { ITableColumn } from '../../types';
 
 const isFixedLeft = (fixed: ITableColumn['fixed']): boolean =>
   fixed === true || fixed === 'left';
@@ -33,13 +32,88 @@ const Row = (
   }: ITableRowProps,
   _ref: any
 ) => {
-  const { columns, positionX, contentWidth, treeConfig, rowStyle } =
-    useTableStatic();
-  const { isExpanded, toggleExpand } = useTableState();
+  const {
+    columns,
+    positionX,
+    contentWidth,
+    treeConfig,
+    rowStyle,
+    stripe,
+    stripeColor,
+    border,
+    borderColor: borderColorProp,
+    checkboxConfig,
+    radioConfig,
+    seqConfig,
+    rowConfig,
+  } = useTableStatic();
+  const {
+    isExpanded,
+    toggleExpand,
+    isChecked,
+    radioKey,
+    currentRowKey,
+    setCurrentRowKey,
+  } = useTableState();
 
   const expanded = isExpanded(rowKeyValue);
 
   const effectiveStyle = style ?? rowStyle;
+
+  // === Stripe ===
+  const stripeStyle = useMemo<ViewStyle | undefined>(() => {
+    if (!stripe || isHeader) return undefined;
+    if (rowIndex % 2 === 1) {
+      return { backgroundColor: stripeColor ?? '#FAFAFA' };
+    }
+    return undefined;
+  }, [stripe, stripeColor, isHeader, rowIndex]);
+
+  // === Inner border ===
+  const innerBorderStyle = useMemo<ViewStyle | undefined>(() => {
+    if (!border || border === 'none' || border === 'outer') return undefined;
+    if (border === 'full' || border === 'inner') {
+      const color = borderColorProp ?? '#E8E8E8';
+      return {
+        borderBottomWidth: 0.5,
+        borderBottomColor: color,
+      };
+    }
+    return undefined;
+  }, [border, borderColorProp]);
+
+  // === Current row highlight ===
+  const currentRowStyle = useMemo<ViewStyle | undefined>(() => {
+    if (isHeader || !rowConfig?.isCurrent) return undefined;
+    if (currentRowKey === rowKeyValue) {
+      return {
+        backgroundColor: rowConfig.currentColor ?? '#E6F7FF',
+      };
+    }
+    return undefined;
+  }, [isHeader, rowConfig, currentRowKey, rowKeyValue]);
+
+  // === Checkbox highlight ===
+  const checkboxHighlightStyle = useMemo<ViewStyle | undefined>(() => {
+    if (isHeader || !checkboxConfig?.highlight) return undefined;
+    if (isChecked(rowKeyValue)) {
+      return {
+        backgroundColor: checkboxConfig.highlightColor ?? '#E6F7FF',
+      };
+    }
+    return undefined;
+  }, [isHeader, checkboxConfig, isChecked, rowKeyValue]);
+
+  // === Radio highlight ===
+  const radioHighlightStyle = useMemo<ViewStyle | undefined>(() => {
+    if (isHeader || !radioConfig?.highlight) return undefined;
+    if (radioKey === rowKeyValue) {
+      return {
+        backgroundColor: radioConfig.highlightColor ?? '#E6F7FF',
+      };
+    }
+    return undefined;
+  }, [isHeader, radioConfig, radioKey, rowKeyValue]);
 
   const nextExpandable = useMemo(() => {
     return !isEmpty(data?.children) && treeConfig ? treeConfig : undefined;
@@ -51,7 +125,20 @@ const Row = (
 
   const _onPressRow = useCallback(() => {
     onPressRow?.({ item: data, rowIndex });
-  }, [onPressRow, data, rowIndex]);
+    // Current row highlight
+    if (rowConfig?.isCurrent && !isHeader) {
+      setCurrentRowKey(rowKeyValue);
+      rowConfig.onCurrentRowChange?.({ row: data, rowIndex });
+    }
+  }, [
+    onPressRow,
+    data,
+    rowIndex,
+    rowConfig,
+    isHeader,
+    setCurrentRowKey,
+    rowKeyValue,
+  ]);
 
   const _onExpandChange = useCallback(() => {
     LayoutAnimation.configureNext(
@@ -79,6 +166,7 @@ const Row = (
         hStyle,
         fixed,
         customVal,
+        type,
       } = column;
 
       const commonParams = {
@@ -93,12 +181,22 @@ const Row = (
       const isLast = colIndex === arr.length - 1;
       const cellStyle = isHeader ? hStyle : cStyle;
 
-      const keys = isHeader ? [key] : key.split(keySplitSymbol);
-      const values = keys.map((k: string) => data[k as keyof typeof data]);
-      let value = values.length <= 1 ? values?.[0] : values;
+      // === Handle special column types ===
+      let value: string | string[];
+      if (type === 'seq') {
+        value = isHeader
+          ? column.title || '#'
+          : String((seqConfig?.startIndex ?? 0) + rowIndex + 1);
+      } else if (type === 'checkbox' || type === 'radio') {
+        value = '';
+      } else {
+        const keys = isHeader ? [key] : key.split(keySplitSymbol);
+        const values = keys.map((k: string) => data[k as keyof typeof data]);
+        value = values.length <= 1 ? values?.[0] : values;
 
-      if (isFunction(customVal)) {
-        value = customVal({ val: value, ...commonParams });
+        if (isFunction(customVal)) {
+          value = customVal({ val: value, ...commonParams });
+        }
       }
 
       const alignRes =
@@ -114,11 +212,23 @@ const Row = (
       if (width) _cellStyle.push({ width });
       if (alignRes) _cellStyle.push({ alignItems: alignRes });
 
+      // Inner border for cells (vertical separator)
+      if (border === 'full' || border === 'inner') {
+        const bColor = borderColorProp ?? '#E8E8E8';
+        if (!isLast) {
+          _cellStyle.push({
+            borderRightWidth: 0.5,
+            borderRightColor: bColor,
+          } as ViewStyle);
+        }
+      }
+
       const defaultRender = () => (
         <Cell
           val={value}
           onExpandChange={_onExpandChange}
           expanded={expanded}
+          rowKeyValue={rowKeyValue}
           style={
             depth > 1 && colIndex === 0 ? { paddingLeft: 8 * (depth - 1) } : {}
           }
@@ -190,10 +300,17 @@ const Row = (
     contentWidth,
     _onExpandChange,
     expanded,
+    seqConfig,
+    border,
+    borderColorProp,
+    rowKeyValue,
   ]);
 
-  const renderSeparator = () =>
-    !isHeader ? <View style={styles.separator} /> : null;
+  const renderSeparator = () => {
+    // Skip separator when using inner/full border (already handled)
+    if (border === 'full' || border === 'inner') return null;
+    return !isHeader ? <View style={styles.separator} /> : null;
+  };
 
   const renderChildRow = ({
     item,
@@ -268,11 +385,23 @@ const Row = (
   return (
     <TouchableWithoutFeedback
       onPress={_onPressRow}
-      disabled={!isFunction(onPressRow)}
+      disabled={!isFunction(onPressRow) && !rowConfig?.isCurrent}
     >
       <>
         {renderSeparator()}
-        <View style={[styles.row, effectiveStyle]}>{renderColumns()}</View>
+        <View
+          style={[
+            styles.row,
+            effectiveStyle,
+            stripeStyle,
+            innerBorderStyle,
+            currentRowStyle,
+            checkboxHighlightStyle,
+            radioHighlightStyle,
+          ]}
+        >
+          {renderColumns()}
+        </View>
         {renderExpand()}
       </>
     </TouchableWithoutFeedback>

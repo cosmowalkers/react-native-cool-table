@@ -11,9 +11,26 @@ export type {
   ITableRowProps,
   TSortType,
   TSortState,
+  TSortItem,
+  TMultiSortState,
   ITableSortProps,
   ITableStaticContextValue,
   ITableStateContextValue,
+  ICoolTableRef,
+  // P0 新增类型导出
+  TColumnType,
+  ISortConfig,
+  IFilterOption,
+  IFilterState,
+  IFilterConfig,
+  ICheckboxConfig,
+  IRadioConfig,
+  ISeqConfig,
+  IVirtualConfig,
+  TBorderType,
+  ILoadingConfig,
+  IFooterConfig,
+  IRowConfig,
 } from './types/index';
 export { useTableStatic, useTableState } from './context';
 import { SORT_STATUS_MAP } from './constant';

@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View } from 'react-native';
+import { View, Text } from 'react-native';
 import type { ITableSortProps } from '../../types';
 import styles from './styles';
 
@@ -8,10 +8,11 @@ const Sort = ({
   style,
   ascIconProps,
   descIconProps,
+  sortIndex,
 }: ITableSortProps) => {
   return (
     <View style={[styles.container, style]}>
-      {/* 向上箭头 */}
+      {/* asc arrow */}
       <View
         style={[
           styles.triangle,
@@ -20,7 +21,7 @@ const Sort = ({
           ascIconProps?.style,
         ]}
       />
-      {/* 向下箭头 */}
+      {/* desc arrow */}
       <View
         style={[
           styles.triangle,
@@ -29,6 +30,9 @@ const Sort = ({
           descIconProps?.style,
         ]}
       />
+      {sortIndex !== undefined && sortIndex > 0 && (
+        <Text style={styles.sortIndex}>{sortIndex}</Text>
+      )}
     </View>
   );
 };
