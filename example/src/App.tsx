@@ -1,34 +1,15 @@
 import * as React from 'react';
-import { useCallback, useMemo, useState } from 'react';
+import { StatusBar } from 'react-native';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-import { StyleSheet, View, StatusBar, SafeAreaView } from 'react-native';
-
-import HomeScreen from './screens/HomeScreen';
+import type { RootStackParamList } from './navigation/types';
 import type { DemoSectionData } from './screens/HomeScreen';
-import DemoDetailHeader from './components/DemoDetailHeader';
-import BasicTableDemo from './demos/BasicTableDemo';
-import SortableTableDemo from './demos/SortableTableDemo';
-import ExpandableTableDemo from './demos/ExpandableTableDemo';
-import EmptyStateDemo from './demos/EmptyStateDemo';
-import FixedColumnDemo from './demos/FixedColumnDemo';
-import RightFixedDemo from './demos/RightFixedDemo';
-import CustomRenderDemo from './demos/CustomRenderDemo';
-import InteractiveDemo from './demos/InteractiveDemo';
-import ComprehensiveDemo from './demos/ComprehensiveDemo';
-import PerformanceDemo from './demos/PerformanceDemo';
+import HomeScreen from './screens/HomeScreen';
+import DemoScreen from './screens/DemoScreen';
+import { colors } from './styles/commonStyles';
 
-const DEMO_COMPONENTS: Record<string, React.ComponentType<any>> = {
-  basic: BasicTableDemo,
-  sortable: SortableTableDemo,
-  expandable: ExpandableTableDemo,
-  empty: EmptyStateDemo,
-  fixed: FixedColumnDemo,
-  rightFixed: RightFixedDemo,
-  custom: CustomRenderDemo,
-  interactive: InteractiveDemo,
-  comprehensive: ComprehensiveDemo,
-  performance: PerformanceDemo,
-};
+const Stack = createStackNavigator<RootStackParamList>();
 
 const SECTIONS: DemoSectionData[] = [
   {
@@ -98,6 +79,43 @@ const SECTIONS: DemoSectionData[] = [
     ],
   },
   {
+    title: 'P0 新增功能',
+    items: [
+      {
+        id: 'multiSort',
+        title: '多列排序',
+        description: '多列排序，显示排序优先级序号',
+        icon: '↕',
+        iconBg: '#F0F5FF',
+        iconColor: '#2F54EB',
+      },
+      {
+        id: 'checkboxRadio',
+        title: '多选 & 单选',
+        description: 'Checkbox 全选/半选，Radio 单选',
+        icon: '☑',
+        iconBg: '#E6FFFB',
+        iconColor: '#13c2c2',
+      },
+      {
+        id: 'filter',
+        title: '列筛选',
+        description: '列头筛选面板，多选/单选筛选',
+        icon: '▼',
+        iconBg: '#FFF7E6',
+        iconColor: '#fa8c16',
+      },
+      {
+        id: 'stripeBorder',
+        title: '条纹 & 边框',
+        description: '条纹行、边框模式、Loading、Footer 汇总',
+        icon: '▦',
+        iconBg: '#F6FFED',
+        iconColor: '#52c41a',
+      },
+    ],
+  },
+  {
     title: '交互场景',
     items: [
       {
@@ -133,56 +151,48 @@ const SECTIONS: DemoSectionData[] = [
   },
 ];
 
-const ALL_ITEMS = SECTIONS.flatMap((s) => s.items);
-
-type Screen = 'home' | 'demo';
+const HomeScreenWrapper: React.FC = () => <HomeScreen sections={SECTIONS} />;
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>('home');
-  const [currentDemo, setCurrentDemo] = useState('basic');
-
-  const handleSelectDemo = useCallback((id: string) => {
-    setCurrentDemo(id);
-    setScreen('demo');
-  }, []);
-
-  const handleBack = useCallback(() => {
-    setScreen('home');
-  }, []);
-
-  const currentTitle = useMemo(() => {
-    const item = ALL_ITEMS.find((d) => d.id === currentDemo);
-    return item?.title ?? '';
-  }, [currentDemo]);
-
-  const DemoComponent = DEMO_COMPONENTS[currentDemo] ?? BasicTableDemo;
-
   return (
-    <SafeAreaView style={styles.container}>
+    <NavigationContainer>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-      {screen === 'home' ? (
-        <HomeScreen sections={SECTIONS} onSelectDemo={handleSelectDemo} />
-      ) : (
-        <View style={styles.demoContainer}>
-          <DemoDetailHeader title={currentTitle} onBack={handleBack} />
-          <View style={styles.demoContent}>
-            <DemoComponent />
-          </View>
-        </View>
-      )}
-    </SafeAreaView>
+      <Stack.Navigator
+        initialRouteName="Home"
+        screenOptions={{
+          headerStyle: {
+            backgroundColor: '#fff',
+            elevation: 2,
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.06,
+            shadowRadius: 4,
+          },
+          headerTintColor: colors.primary,
+          headerTitleStyle: {
+            fontWeight: '600',
+            fontSize: 16,
+            color: colors.text,
+          },
+          cardStyle: {
+            backgroundColor: '#f5f5f5',
+          },
+        }}
+      >
+        <Stack.Screen
+          name="Home"
+          component={HomeScreenWrapper}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="Demo"
+          component={DemoScreen}
+          options={({ route }) => ({
+            title: route.params.title,
+            headerBackTitle: '返回',
+          })}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  demoContainer: {
-    flex: 1,
-  },
-  demoContent: {
-    flex: 1,
-  },
-});

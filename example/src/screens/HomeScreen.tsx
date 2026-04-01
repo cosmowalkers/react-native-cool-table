@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,9 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
+import type { RootStackParamList } from '../navigation/types';
 import { colors } from '../styles/commonStyles';
 
 export interface DemoCardItem {
@@ -24,8 +27,9 @@ export interface DemoSectionData {
 
 interface HomeScreenProps {
   sections: DemoSectionData[];
-  onSelectDemo: (id: string) => void;
 }
+
+type HomeNavProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const DemoCard: React.FC<{
   item: DemoCardItem;
@@ -49,7 +53,16 @@ const DemoCard: React.FC<{
   </TouchableOpacity>
 );
 
-const HomeScreen: React.FC<HomeScreenProps> = ({ sections, onSelectDemo }) => {
+const HomeScreen: React.FC<HomeScreenProps> = ({ sections }) => {
+  const navigation = useNavigation<HomeNavProp>();
+
+  const handleSelectDemo = useCallback(
+    (item: DemoCardItem) => {
+      navigation.navigate('Demo', { demoId: item.id, title: item.title });
+    },
+    [navigation]
+  );
+
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
@@ -75,13 +88,13 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ sections, onSelectDemo }) => {
               <View key={pairIndex} style={styles.cardRow}>
                 <DemoCard
                   item={pair[0]}
-                  onPress={() => onSelectDemo(pair[0].id)}
+                  onPress={() => handleSelectDemo(pair[0])}
                 />
                 {pair[1] ? (
                   <DemoCard
                     item={pair[1]}
                     isRight
-                    onPress={() => onSelectDemo(pair[1].id)}
+                    onPress={() => handleSelectDemo(pair[1])}
                   />
                 ) : (
                   <View style={styles.cardPlaceholder} />
