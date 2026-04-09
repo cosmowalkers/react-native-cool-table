@@ -46,6 +46,7 @@ import useTooltip from '../../hooks/useTooltip';
 import usePagination from '../../hooks/usePagination';
 import { useColumnVisibility } from '../../hooks/useColumnVisibility';
 import { useGroupedColumns } from '../../hooks/useGroupedColumns';
+import { useColumnResize } from '../../hooks/useColumnResize';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -90,6 +91,7 @@ const Table = (
     paginationConfig,
     searchConfig,
     columnVisibilityConfig,
+    resizeConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -105,6 +107,12 @@ const Table = (
   // === Grouped Columns ===
   const { leafColumns, headerLevels } = useGroupedColumns({
     columns: visibleColumns,
+  });
+
+  // === Column Resize ===
+  const { columnWidths, setColumnWidth, getColumnWidths } = useColumnResize({
+    resizeConfig,
+    columns: leafColumns,
   });
 
   // === Sort ===
@@ -245,6 +253,7 @@ const Table = (
       paginationConfig,
       searchConfig,
       headerLevels,
+      resizeConfig,
     }),
     [
       _columns,
@@ -268,6 +277,7 @@ const Table = (
       paginationConfig,
       searchConfig,
       headerLevels,
+      resizeConfig,
     ]
   );
 
@@ -295,6 +305,8 @@ const Table = (
       setCurrentRowKey,
       showTooltip,
       hideTooltip,
+      columnWidths,
+      setColumnWidth,
     }),
     [
       sortState,
@@ -318,6 +330,8 @@ const Table = (
       currentRowKey,
       showTooltip,
       hideTooltip,
+      columnWidths,
+      setColumnWidth,
     ]
   );
 
@@ -445,6 +459,9 @@ const Table = (
       hideColumn,
       showColumn,
       getHiddenColumns,
+      // Column Resize
+      setColumnWidth: resizeConfig?.enabled ? setColumnWidth : undefined,
+      getColumnWidths: resizeConfig?.enabled ? getColumnWidths : undefined,
     }),
     [
       data,
@@ -468,6 +485,9 @@ const Table = (
       hideColumn,
       showColumn,
       getHiddenColumns,
+      resizeConfig?.enabled,
+      setColumnWidth,
+      getColumnWidths,
     ]
   );
 

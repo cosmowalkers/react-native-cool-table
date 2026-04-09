@@ -54,6 +54,7 @@ const Row = (
     radioKey,
     currentRowKey,
     setCurrentRowKey,
+    columnWidths,
   } = useTableState();
 
   const expanded = isExpanded(rowKeyValue);
@@ -155,10 +156,13 @@ const Row = (
   const rightTranslateX = useMemo(() => {
     const rightFixedWidth = columns
       .filter((c) => c.fixed === 'right')
-      .reduce((sum, c) => sum + (Number(c.width) || 0), 0);
+      .reduce(
+        (sum, c) => sum + (columnWidths?.get(c.key) ?? (Number(c.width) || 0)),
+        0
+      );
     if (rightFixedWidth === 0) return null;
     return Animated.add(positionX, contentWidth - rightFixedWidth);
-  }, [columns, positionX, contentWidth]);
+  }, [columns, positionX, contentWidth, columnWidths]);
 
   const renderColumns = useCallback(() => {
     if (!isArray(columns) || isEmpty(columns)) return null;
@@ -218,7 +222,8 @@ const Row = (
           : styles.justify_center,
         { paddingLeft: isFirst ? 0 : 16, paddingRight: isLast ? 0 : 16 },
       ];
-      if (width) _cellStyle.push({ width });
+      const dynamicWidth = columnWidths?.get(column.key) ?? width;
+      if (dynamicWidth) _cellStyle.push({ width: dynamicWidth });
       if (alignRes) _cellStyle.push({ alignItems: alignRes });
 
       // Inner border for cells (vertical separator)
@@ -306,6 +311,7 @@ const Row = (
     border,
     borderColorProp,
     rowKeyValue,
+    columnWidths,
   ]);
 
   const renderSeparator = () => {

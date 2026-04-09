@@ -7,7 +7,8 @@ import { isEmpty, isFunction } from 'lodash';
 import type { THeaderLevel, ITableColumn } from '../../types';
 import { ALIGN_MAP } from '../../constant';
 import Cell from '../Cell';
-import { useTableStatic } from '../../context';
+import ResizeHandle from '../ResizeHandle';
+import { useTableStatic, useTableState } from '../../context';
 import styles from './styles';
 
 interface IHeaderRowProps {
@@ -37,7 +38,9 @@ const HeaderRow = (
     positionX,
     border,
     borderColor: borderColorProp,
+    resizeConfig,
   } = useTableStatic();
+  const { columnWidths, setColumnWidth } = useTableState();
 
   /**
    * 计算每个 header cell 覆盖的宽度。
@@ -61,13 +64,14 @@ const HeaderRow = (
             const startLeafIdx = leafIdx;
             leafIdx += colSpan;
 
-            // 计算宽度：覆盖的 leaf columns 的宽度之和
+            // 计算宽度：覆盖的 leaf columns 的宽度之和（优先使用动态列宽）
             const coveredLeafs = leafColumns.slice(
               startLeafIdx,
               startLeafIdx + colSpan
             );
             const cellWidth = coveredLeafs.reduce(
-              (sum, c) => sum + (Number(c.width) || 0),
+              (sum, c) =>
+                sum + (columnWidths?.get(c.key) ?? (Number(c.width) || 0)),
               0
             );
 
@@ -150,6 +154,21 @@ const HeaderRow = (
                 ? renderer({ val: value, defaultRender, ...commonParams })
                 : defaultRender();
 
+              // 是否显示 ResizeHandle
+              const showResize =
+                resizeConfig?.enabled === true &&
+                column.resizable !== false &&
+                setColumnWidth != null;
+              const resizeHandle = showResize ? (
+                <ResizeHandle
+                  columnKey={column.key}
+                  initialWidth={
+                    columnWidths?.get(column.key) ?? (Number(column.width) || 0)
+                  }
+                  onResize={setColumnWidth}
+                />
+              ) : null;
+
               if (hasFixedLeft) {
                 return (
                   <Animated.View
@@ -161,6 +180,7 @@ const HeaderRow = (
                     ]}
                   >
                     {cell}
+                    {resizeHandle}
                   </Animated.View>
                 );
               }
@@ -171,6 +191,7 @@ const HeaderRow = (
                   style={baseCellStyle}
                 >
                   {cell}
+                  {resizeHandle}
                 </View>
               );
             }
@@ -230,6 +251,9 @@ const HeaderRow = (
       borderColorProp,
       headerLevels.length,
       headerRowStyle,
+      resizeConfig,
+      columnWidths,
+      setColumnWidth,
     ]
   );
 
