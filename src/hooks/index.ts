@@ -4,3 +4,4 @@ export { default as useFilter } from './useFilter';
 export { default as useCheckbox } from './useCheckbox';
 export { default as useRadio } from './useRadio';
 export { default as useTableData } from './useTableData';
+export { default as useTooltip } from './useTooltip';

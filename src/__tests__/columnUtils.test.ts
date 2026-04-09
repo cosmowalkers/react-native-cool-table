@@ -49,13 +49,21 @@ describe('columnUtils', () => {
     it('should flatten one level of grouped columns', () => {
       const result = flattenColumns(groupedColumns);
       expect(result).toHaveLength(3);
-      expect(result.map((c) => c.key)).toEqual(['name', 'age', 'gender']);
+      expect(result.map((c: ITableColumn) => c.key)).toEqual([
+        'name',
+        'age',
+        'gender',
+      ]);
     });
 
     it('should flatten deep grouped columns', () => {
       const result = flattenColumns(deepGroupedColumns);
       expect(result).toHaveLength(3);
-      expect(result.map((c) => c.key)).toEqual(['name', 'age', 'gender']);
+      expect(result.map((c: ITableColumn) => c.key)).toEqual([
+        'name',
+        'age',
+        'gender',
+      ]);
     });
   });
 

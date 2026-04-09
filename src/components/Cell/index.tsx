@@ -1,7 +1,18 @@
 import { isArray, isFunction, isNil } from 'lodash';
-import React, { forwardRef, memo, useCallback, useMemo, useState } from 'react';
+import React, {
+  forwardRef,
+  memo,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Text, View, TouchableOpacity, Modal } from 'react-native';
-import type { ITableCellProps, IFilterOption } from '../../types';
+import type {
+  ITableCellProps,
+  IFilterOption,
+  IEllipsisConfig,
+} from '../../types';
 import { SORT_STATUS_MAP } from '../../constant';
 import Sort from '../Sort';
 import styles from './styles';
@@ -39,7 +50,7 @@ const Cell = (
     filterRender,
   } = col;
 
-  const { sortConfig } = useTableStatic();
+  const { sortConfig, ellipsisConfig: globalEllipsisConfig } = useTableStatic();
   const {
     sortState,
     setSortState,
@@ -55,6 +66,7 @@ const Cell = (
     filterStates,
     setFilterState,
     clearFilterState,
+    showTooltip,
   } = useTableState();
 
   const [filterVisible, setFilterVisible] = useState(false);
@@ -75,6 +87,43 @@ const Cell = (
     () => !isHeader && !!showArrow && !isShowExpand,
     [isHeader, showArrow, isShowExpand]
   );
+
+  // === Ellipsis config (merge column-level + global) ===
+  const cellRef = useRef<TouchableOpacity>(null);
+
+  const effectiveEllipsis = useMemo((): IEllipsisConfig | null => {
+    if (isHeader) return null;
+    const colEllipsis = col.ellipsis;
+    if (colEllipsis === true) {
+      // column 设置 ellipsis: true，使用全局 numberOfLines（默认 1）
+      return {
+        enabled: true,
+        numberOfLines: globalEllipsisConfig?.numberOfLines ?? 1,
+        trigger: globalEllipsisConfig?.trigger ?? 'longPress',
+      };
+    }
+    if (colEllipsis && typeof colEllipsis === 'object') {
+      // column 设置了 IEllipsisConfig 对象
+      return {
+        enabled: true,
+        numberOfLines: colEllipsis.numberOfLines ?? 1,
+        trigger:
+          colEllipsis.trigger ?? globalEllipsisConfig?.trigger ?? 'longPress',
+        renderTooltip:
+          colEllipsis.renderTooltip ?? globalEllipsisConfig?.renderTooltip,
+      };
+    }
+    if (globalEllipsisConfig?.enabled) {
+      // 全局启用省略
+      return {
+        enabled: true,
+        numberOfLines: globalEllipsisConfig.numberOfLines ?? 1,
+        trigger: globalEllipsisConfig.trigger ?? 'longPress',
+        renderTooltip: globalEllipsisConfig.renderTooltip,
+      };
+    }
+    return null;
+  }, [isHeader, col.ellipsis, globalEllipsisConfig]);
 
   // === Multi-sort support ===
   const currentSort = useMemo(() => {
@@ -170,6 +219,25 @@ const Cell = (
     _rowKey,
   ]);
 
+  // === Tooltip long-press handler ===
+  const _onLongPress = useCallback(() => {
+    if (!effectiveEllipsis || !showTooltip) return;
+    const textVal = isArray(val) ? val.join(', ') : String(val ?? '');
+    if (!textVal) return;
+    cellRef.current?.measure(
+      (
+        _fx: number,
+        _fy: number,
+        _w: number,
+        _h: number,
+        px: number,
+        py: number
+      ) => {
+        showTooltip(textVal, px, py, _w);
+      }
+    );
+  }, [effectiveEllipsis, showTooltip, val]);
+
   // === Filter handlers ===
   const openFilter = useCallback(() => {
     const current = filterStates.find((f) => f.columnKey === key);
@@ -258,10 +326,12 @@ const Cell = (
     }
     if (isNil(val)) return null;
     const vals = isArray(val) ? val : [val];
+    const ellipsisLines = effectiveEllipsis?.numberOfLines ?? undefined;
     return vals.map((item, index) => (
       <Text
         key={`table-cell-${key}-${item}-${index}`}
-        numberOfLines={2}
+        numberOfLines={ellipsisLines ?? 2}
+        ellipsizeMode={ellipsisLines ? 'tail' : undefined}
         style={[
           styles.text,
           {
@@ -416,17 +486,27 @@ const Cell = (
     );
   };
 
+  const hasTooltip = !!effectiveEllipsis && !!showTooltip;
+  const tooltipTrigger = effectiveEllipsis?.trigger ?? 'longPress';
+
   return (
     <>
       <TouchableOpacity
+        ref={cellRef}
         style={[styles.content, style, touchStyle]}
         onPress={_onPress}
+        onLongPress={
+          hasTooltip && tooltipTrigger === 'longPress'
+            ? _onLongPress
+            : undefined
+        }
         disabled={
           !onPress &&
           !isShowSort &&
           !isShowExpand &&
           !isCheckboxType &&
-          !isRadioType
+          !isRadioType &&
+          !hasTooltip
         }
       >
         {renderExpand()}

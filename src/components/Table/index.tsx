@@ -41,6 +41,8 @@ import useCheckbox from '../../hooks/useCheckbox';
 import useRadio from '../../hooks/useRadio';
 import useTableData from '../../hooks/useTableData';
 import useUpdateEffect from '../../hooks/useUpdateEffect';
+import useTooltip from '../../hooks/useTooltip';
+import Tooltip from '../Tooltip';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -79,6 +81,7 @@ const Table = (
     footerConfig,
     virtualConfig,
     rowConfig,
+    ellipsisConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -108,6 +111,9 @@ const Table = (
 
   // === Radio ===
   const { radioKey, setRadioKey } = useRadio({ radioConfig, data, rowKey });
+
+  // === Tooltip ===
+  const { tooltipState, showTooltip, hideTooltip } = useTooltip();
 
   // === Processed data ===
   const processedData = useTableData({
@@ -206,6 +212,7 @@ const Table = (
       border,
       borderColor,
       rowConfig,
+      ellipsisConfig,
     }),
     [
       _columns,
@@ -225,6 +232,7 @@ const Table = (
       border,
       borderColor,
       rowConfig,
+      ellipsisConfig,
     ]
   );
 
@@ -250,6 +258,8 @@ const Table = (
       clearFilterState,
       currentRowKey,
       setCurrentRowKey,
+      showTooltip,
+      hideTooltip,
     }),
     [
       sortState,
@@ -271,6 +281,8 @@ const Table = (
       setFilterState,
       clearFilterState,
       currentRowKey,
+      showTooltip,
+      hideTooltip,
     ]
   );
 
@@ -638,6 +650,7 @@ const Table = (
             </View>
           </Animated.ScrollView>
           {renderLoading()}
+          <Tooltip state={tooltipState} onClose={hideTooltip} />
         </View>
       </TableStateContext.Provider>
     </TableStaticContext.Provider>
