@@ -31,6 +31,24 @@ export type {
   ILoadingConfig,
   IFooterConfig,
   IRowConfig,
+  // P0+P1 新增类型导出
+  IResizeConfig,
+  IHeaderCell,
+  THeaderLevel,
+  ISpanResult,
+  TSpanMethod,
+  IDragSortConfig,
+  IPaginationConfig,
+  IEllipsisConfig,
+  TEditType,
+  IEditRule,
+  IEditConfig,
+  IValidationError,
+  IValidationConfig,
+  IContextMenuItem,
+  IContextMenuConfig,
+  IColumnVisibilityConfig,
+  ISearchConfig,
 } from './types/index';
 export { useTableStatic, useTableState } from './context';
 import { SORT_STATUS_MAP } from './constant';
