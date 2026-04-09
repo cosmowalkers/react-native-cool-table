@@ -27,35 +27,24 @@ import type {
   ITableProps,
   TItem,
   ITableColumn,
-  TSortState,
-  TMultiSortState,
-  IFilterState,
   ITableStaticContextValue,
   ITableStateContextValue,
   ICoolTableRef,
 } from '../../types';
-import { isFunction, isNil } from 'lodash';
+import { isFunction } from 'lodash';
 import Row from '../Row';
 import { TableStaticContext, TableStateContext } from '../../context';
+import { buildRowKey } from '../../utils';
+import useSort from '../../hooks/useSort';
+import useFilter from '../../hooks/useFilter';
+import useCheckbox from '../../hooks/useCheckbox';
+import useRadio from '../../hooks/useRadio';
+import useTableData from '../../hooks/useTableData';
+import useUpdateEffect from '../../hooks/useUpdateEffect';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
-
-const buildRowKey = (
-  rowKeyProp: ITableProps['rowKey'],
-  item: TItem,
-  index: number
-): string => {
-  if (typeof rowKeyProp === 'function') {
-    return rowKeyProp(item, index);
-  }
-  if (typeof rowKeyProp === 'string') {
-    const v = item[rowKeyProp];
-    return v !== undefined && v !== null ? String(v) : String(index);
-  }
-  return String(index);
-};
 
 const Table = (
   {
@@ -75,7 +64,6 @@ const Table = (
     EmptyComponent,
     keyExtractor,
     rowKey,
-    // P0 新增
     sortConfig,
     filterConfig,
     onFilterChange,
@@ -99,77 +87,50 @@ const Table = (
   const [positionX] = useState(new Animated.Value(0));
   const flatListRef = useRef<FlatList>(null);
 
-  // === Sort State ===
-  const [sortState, setSortState] = useState<TSortState>(() => {
-    if (sortConfig?.defaultSort) {
-      const ds = sortConfig.defaultSort;
-      if (Array.isArray(ds)) {
-        return ds.length > 0 ? ds[0]! : null;
-      }
-      return ds;
-    }
-    const col = columns.find((c) => c.defaultSort);
-    return col?.defaultSort
-      ? { columnKey: col.key, sort: col.defaultSort }
-      : null;
-  });
+  // === Sort ===
+  const { sortState, setSortState, multiSortState, setMultiSortState } =
+    useSort({ sortConfig, columns: _columns, onSortChange });
 
-  const [multiSortState, setMultiSortState] = useState<TMultiSortState>(() => {
-    if (sortConfig?.defaultSort) {
-      const ds = sortConfig.defaultSort;
-      return Array.isArray(ds) ? ds : [ds];
-    }
-    const col = columns.find((c) => c.defaultSort);
-    return col?.defaultSort
-      ? [{ columnKey: col.key, sort: col.defaultSort }]
-      : [];
+  // === Filter ===
+  const { filterStates, setFilterState, clearFilterState, filteredData } =
+    useFilter({ filterConfig, columns: _columns, data, onFilterChange });
+
+  // === Checkbox ===
+  const {
+    checkedKeys,
+    setCheckedKeys,
+    toggleChecked,
+    toggleCheckedAll,
+    isChecked,
+    isCheckedAll,
+    isIndeterminate,
+  } = useCheckbox({ checkboxConfig, data, rowKey });
+
+  // === Radio ===
+  const { radioKey, setRadioKey } = useRadio({ radioConfig, data, rowKey });
+
+  // === Processed data ===
+  const processedData = useTableData({
+    filteredData,
+    sortState,
+    multiSortState,
+    sortConfig,
+    columns: _columns,
   });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
-
-  // === Checkbox State ===
-  const [checkedKeys, setCheckedKeys] = useState<Set<string>>(() => {
-    if (checkboxConfig?.checkedRowKeys) {
-      return new Set(checkboxConfig.checkedRowKeys);
-    }
-    return new Set();
-  });
-
-  // === Radio State ===
-  const [radioKey, setRadioKey] = useState<string | null>(
-    radioConfig?.checkedRowKey ?? null
-  );
-
-  // === Filter State ===
-  const [filterStates, setFilterStates] = useState<IFilterState[]>([]);
 
   // === Current Row State ===
   const [currentRowKey, setCurrentRowKey] = useState<string | null>(
     rowConfig?.currentRowKey ?? null
   );
 
-  // Sync controlled checkbox keys
-  useEffect(() => {
-    if (checkboxConfig?.checkedRowKeys) {
-      setCheckedKeys(new Set(checkboxConfig.checkedRowKeys));
+  // Sync controlled current row key (skip mount)
+  useUpdateEffect(() => {
+    if (rowConfig?.currentRowKey !== undefined) {
+      setCurrentRowKey(rowConfig.currentRowKey ?? null);
     }
-  }, [checkboxConfig?.checkedRowKeys]);
-
-  // Sync controlled radio key
-  useEffect(() => {
-    if (!isNil(radioConfig?.checkedRowKey)) {
-      setRadioKey(radioConfig!.checkedRowKey!);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radioConfig?.checkedRowKey]);
-
-  // Sync controlled current row key
-  useEffect(() => {
-    if (!isNil(rowConfig?.currentRowKey)) {
-      setCurrentRowKey(rowConfig!.currentRowKey!);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowConfig?.currentRowKey]);
 
   // === Column ordering (fixed left → normal → fixed right) ===
@@ -183,30 +144,6 @@ const Table = (
       return [...fixedLeft, ...normal, ...fixedRight];
     });
   }, [columns]);
-
-  // === Sort change effect ===
-  useEffect(() => {
-    if (sortConfig?.multiple) {
-      if (multiSortState.length > 0) {
-        const last = multiSortState[multiSortState.length - 1]!;
-        const colIndex = _columns.findIndex((c) => c.key === last.columnKey);
-        onSortChange?.({
-          key: last.columnKey,
-          colIndex,
-          sort: last.sort,
-          sortList: multiSortState,
-        });
-      }
-    } else if (sortState) {
-      const colIndex = _columns.findIndex((c) => c.key === sortState.columnKey);
-      onSortChange?.({
-        key: sortState.columnKey,
-        colIndex,
-        sort: sortState.sort,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortState, multiSortState]);
 
   // === Expand ===
   const toggleExpand = useCallback(
@@ -232,180 +169,22 @@ const Table = (
     [expandedKeys]
   );
 
-  // === Checkbox ===
-  const checkableData = useMemo(() => {
-    if (!checkboxConfig) return data;
-    if (isFunction(checkboxConfig.checkMethod)) {
-      return data.filter((row, idx) =>
-        checkboxConfig.checkMethod!({ row, rowIndex: idx })
-      );
-    }
-    return data;
-  }, [data, checkboxConfig]);
-
-  const toggleChecked = useCallback((key: string) => {
-    setCheckedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
-  }, []);
-
-  const toggleCheckedAll = useCallback(() => {
-    setCheckedKeys((prev) => {
-      const allKeys = checkableData.map((item, idx) =>
-        buildRowKey(rowKey, item, idx)
-      );
-      const allChecked = allKeys.every((k) => prev.has(k));
-      if (allChecked) {
-        return new Set();
-      }
-      return new Set(allKeys);
-    });
-  }, [checkableData, rowKey]);
-
-  const isChecked = useCallback(
-    (key: string) => checkedKeys.has(key),
-    [checkedKeys]
-  );
-
-  const isCheckedAll = useMemo(() => {
-    if (checkableData.length === 0) return false;
-    const allKeys = checkableData.map((item, idx) =>
-      buildRowKey(rowKey, item, idx)
-    );
-    return allKeys.every((k) => checkedKeys.has(k));
-  }, [checkableData, checkedKeys, rowKey]);
-
-  const isIndeterminate = useMemo(() => {
-    if (checkedKeys.size === 0) return false;
-    return !isCheckedAll && checkedKeys.size > 0;
-  }, [checkedKeys, isCheckedAll]);
-
-  // Checkbox onChange
-  useEffect(() => {
-    if (checkboxConfig?.onChange) {
-      const records = data.filter((item, idx) => {
-        const key = buildRowKey(rowKey, item, idx);
-        return checkedKeys.has(key);
-      });
-      checkboxConfig.onChange({ records });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [checkedKeys]);
-
-  // Radio onChange
-  useEffect(() => {
-    if (radioConfig?.onChange) {
-      if (radioKey) {
-        const row = data.find((item, idx) => {
-          const key = buildRowKey(rowKey, item, idx);
-          return key === radioKey;
-        });
-        radioConfig.onChange({ row: row ?? null });
-      } else {
-        radioConfig.onChange({ row: null });
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [radioKey]);
-
-  // === Filter ===
-  const setFilterState = useCallback(
-    (columnKey: string, values: (string | number | boolean)[]) => {
-      setFilterStates((prev) => {
-        const next = prev.filter((f) => f.columnKey !== columnKey);
-        if (values.length > 0) {
-          next.push({ columnKey, values });
-        }
-        return next;
-      });
-    },
+  // === Stabilize callback refs for context ===
+  const onSortChangeRef = useRef(onSortChange);
+  onSortChangeRef.current = onSortChange;
+  const _stableOnSortChange = useCallback(
+    (...args: Parameters<NonNullable<typeof onSortChange>>) =>
+      onSortChangeRef.current?.(...args),
     []
   );
 
-  const clearFilterState = useCallback((columnKey?: string) => {
-    if (columnKey) {
-      setFilterStates((prev) => prev.filter((f) => f.columnKey !== columnKey));
-    } else {
-      setFilterStates([]);
-    }
-  }, []);
-
-  // Filter change callback
-  useEffect(() => {
-    // Do not fire on initial mount
-    if (filterStates.length === 0) return;
-    const lastFilter = filterStates[filterStates.length - 1];
-    if (lastFilter && onFilterChange) {
-      const column = _columns.find((c) => c.key === lastFilter.columnKey);
-      if (column) {
-        onFilterChange({ filters: filterStates, column });
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filterStates]);
-
-  // === Filtered data (local filtering) ===
-  const filteredData = useMemo(() => {
-    if (filterConfig?.remote) return data;
-    if (filterStates.length === 0) return data;
-
-    return data.filter((row) => {
-      return filterStates.every((fs) => {
-        const column = _columns.find((c) => c.key === fs.columnKey);
-        if (!column) return true;
-        if (isFunction(column.filterMethod)) {
-          return fs.values.some((v) =>
-            column.filterMethod!({ value: v, row, column })
-          );
-        }
-        // Default: check if row value is in filter values
-        return fs.values.includes(row[fs.columnKey]);
-      });
-    });
-  }, [data, filterStates, filterConfig?.remote, _columns]);
-
-  // === Sorted data (local sorting) ===
-  const processedData = useMemo(() => {
-    if (sortConfig?.remote) return filteredData;
-    if (sortConfig?.multiple && multiSortState.length > 0) {
-      const sorted = [...filteredData];
-      sorted.sort((a, b) => {
-        for (const s of multiSortState) {
-          const aVal = a[s.columnKey];
-          const bVal = b[s.columnKey];
-          if (aVal === bVal) continue;
-          const cmp = aVal < bVal ? -1 : 1;
-          return s.sort === 'asc' ? cmp : -cmp;
-        }
-        return 0;
-      });
-      return sorted;
-    }
-    if (!sortConfig?.remote && sortState) {
-      const sorted = [...filteredData];
-      sorted.sort((a, b) => {
-        const aVal = a[sortState.columnKey];
-        const bVal = b[sortState.columnKey];
-        if (aVal === bVal) return 0;
-        const cmp = aVal < bVal ? -1 : 1;
-        return sortState.sort === 'asc' ? cmp : -cmp;
-      });
-      return sorted;
-    }
-    return filteredData;
-  }, [
-    filteredData,
-    sortState,
-    multiSortState,
-    sortConfig?.remote,
-    sortConfig?.multiple,
-  ]);
+  const onFilterChangeRef = useRef(onFilterChange);
+  onFilterChangeRef.current = onFilterChange;
+  const _stableOnFilterChange = useCallback(
+    (...args: Parameters<NonNullable<typeof onFilterChange>>) =>
+      onFilterChangeRef.current?.(...args),
+    []
+  );
 
   // === Context values ===
   const staticValue = useMemo<ITableStaticContextValue>(
@@ -415,10 +194,10 @@ const Table = (
       contentWidth,
       treeConfig,
       rowStyle,
-      onSortChange,
+      onSortChange: _stableOnSortChange,
       sortConfig,
       filterConfig,
-      onFilterChange,
+      onFilterChange: _stableOnFilterChange,
       checkboxConfig,
       radioConfig,
       seqConfig,
@@ -434,10 +213,10 @@ const Table = (
       contentWidth,
       treeConfig,
       rowStyle,
-      onSortChange,
+      _stableOnSortChange,
       sortConfig,
       filterConfig,
-      onFilterChange,
+      _stableOnFilterChange,
       checkboxConfig,
       radioConfig,
       seqConfig,
@@ -474,7 +253,9 @@ const Table = (
     }),
     [
       sortState,
+      setSortState,
       multiSortState,
+      setMultiSortState,
       expandedKeys,
       toggleExpand,
       isExpanded,
@@ -485,11 +266,43 @@ const Table = (
       isCheckedAll,
       isIndeterminate,
       radioKey,
+      setRadioKey,
       filterStates,
       setFilterState,
       clearFilterState,
       currentRowKey,
     ]
+  );
+
+  // === Ref API helpers ===
+  const _setRowExpand = useCallback(
+    (rows: TItem[], expanded: boolean) => {
+      setExpandedKeys((prev) => {
+        const next = new Set(prev);
+        rows.forEach((row, idx) => {
+          const key = buildRowKey(rowKey, row, idx);
+          if (expanded) {
+            next.add(key);
+          } else {
+            next.delete(key);
+          }
+        });
+        return next;
+      });
+    },
+    [rowKey]
+  );
+
+  const _setAllRowExpand = useCallback(
+    (expanded: boolean) => {
+      if (expanded) {
+        const allKeys = data.map((item, idx) => buildRowKey(rowKey, item, idx));
+        setExpandedKeys(new Set(allKeys));
+      } else {
+        setExpandedKeys(new Set());
+      }
+    },
+    [data, rowKey]
   );
 
   // === Ref API ===
@@ -558,53 +371,25 @@ const Table = (
       },
       getFullData: () => data,
       getData: () => processedData,
-      setRowExpand: (rows, expanded) => {
-        setExpandedKeys((prev) => {
-          const next = new Set(prev);
-          rows.forEach((row, idx) => {
-            const key = buildRowKey(rowKey, row, idx);
-            if (expanded) {
-              next.add(key);
-            } else {
-              next.delete(key);
-            }
-          });
-          return next;
-        });
-      },
-      setAllRowExpand: (expanded) => {
-        if (expanded) {
-          const allKeys = data.map((item, idx) =>
-            buildRowKey(rowKey, item, idx)
-          );
-          setExpandedKeys(new Set(allKeys));
-        } else {
-          setExpandedKeys(new Set());
-        }
-      },
+      setRowExpand: _setRowExpand,
+      setAllRowExpand: _setAllRowExpand,
+      /** @deprecated Use setRowExpand instead */
       setTreeExpand: (rows, expanded) => {
-        setExpandedKeys((prev) => {
-          const next = new Set(prev);
-          rows.forEach((row, idx) => {
-            const key = buildRowKey(rowKey, row, idx);
-            if (expanded) {
-              next.add(key);
-            } else {
-              next.delete(key);
-            }
-          });
-          return next;
-        });
-      },
-      setAllTreeExpand: (expanded) => {
-        if (expanded) {
-          const allKeys = data.map((item, idx) =>
-            buildRowKey(rowKey, item, idx)
+        if (__DEV__) {
+          console.warn(
+            'CoolTable: setTreeExpand is deprecated, use setRowExpand instead.'
           );
-          setExpandedKeys(new Set(allKeys));
-        } else {
-          setExpandedKeys(new Set());
         }
+        _setRowExpand(rows, expanded);
+      },
+      /** @deprecated Use setAllRowExpand instead */
+      setAllTreeExpand: (expanded) => {
+        if (__DEV__) {
+          console.warn(
+            'CoolTable: setAllTreeExpand is deprecated, use setAllRowExpand instead.'
+          );
+        }
+        _setAllRowExpand(expanded);
       },
     }),
     [
@@ -618,6 +403,12 @@ const Table = (
       rowKey,
       sortConfig?.multiple,
       clearFilterState,
+      _setRowExpand,
+      _setAllRowExpand,
+      setCheckedKeys,
+      setRadioKey,
+      setSortState,
+      setMultiSortState,
     ]
   );
 
@@ -715,7 +506,6 @@ const Table = (
   const renderFooter = useCallback(() => {
     const parts: React.ReactNode[] = [];
 
-    // Footer rows from footerConfig
     if (footerRows) {
       parts.push(
         <View key="__footer_rows__">
@@ -732,7 +522,6 @@ const Table = (
       );
     }
 
-    // Legacy FooterComponent
     if (FooterComponent) {
       parts.push(
         <Animated.View
@@ -810,14 +599,8 @@ const Table = (
   const borderStyle = useMemo(() => {
     if (!border || border === 'none') return {};
     const color = borderColor ?? '#E8E8E8';
-    if (border === 'full') {
+    if (border === 'full' || border === 'outer') {
       return { borderWidth: 0.5, borderColor: color };
-    }
-    if (border === 'outer') {
-      return { borderWidth: 0.5, borderColor: color };
-    }
-    if (border === 'inner') {
-      return {};
     }
     return {};
   }, [border, borderColor]);

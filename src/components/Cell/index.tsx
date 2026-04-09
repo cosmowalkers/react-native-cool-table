@@ -1,5 +1,5 @@
 import { isArray, isFunction, isNil } from 'lodash';
-import React, { memo, useCallback, useMemo, useState } from 'react';
+import React, { forwardRef, memo, useCallback, useMemo, useState } from 'react';
 import { Text, View, TouchableOpacity, Modal } from 'react-native';
 import type { ITableCellProps, IFilterOption } from '../../types';
 import { SORT_STATUS_MAP } from '../../constant';
@@ -7,18 +7,21 @@ import Sort from '../Sort';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
 
-const Cell = ({
-  val,
-  col,
-  row,
-  rowIndex,
-  colIndex,
-  isHeader,
-  onExpandChange,
-  expanded,
-  style,
-  rowKeyValue,
-}: ITableCellProps) => {
+const Cell = (
+  {
+    val,
+    col,
+    row,
+    rowIndex,
+    colIndex,
+    isHeader,
+    onExpandChange,
+    expanded,
+    style,
+    rowKeyValue,
+  }: ITableCellProps,
+  _ref: any
+) => {
   const {
     key,
     fixed,
@@ -437,4 +440,4 @@ const Cell = ({
   );
 };
 
-export default memo(Cell);
+export default memo(forwardRef(Cell));

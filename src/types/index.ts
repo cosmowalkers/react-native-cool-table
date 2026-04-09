@@ -318,6 +318,8 @@ export interface ITableColumn {
     confirm: (values: (string | number | boolean)[]) => void;
     reset: () => void;
   }) => ReactNode;
+  /** 自定义排序比较函数（本地排序时使用） */
+  sorter?: (a: TItem, b: TItem) => number;
 }
 
 export interface ITableProps extends ICommonTableProps {
@@ -481,7 +483,9 @@ export interface ICoolTableRef {
   // Expand
   setRowExpand: (rows: TItem[], expanded: boolean) => void;
   setAllRowExpand: (expanded: boolean) => void;
+  /** @deprecated Use setRowExpand instead */
   setTreeExpand: (rows: TItem[], expanded: boolean) => void;
+  /** @deprecated Use setAllRowExpand instead */
   setAllTreeExpand: (expanded: boolean) => void;
 }
 
@@ -489,10 +493,10 @@ export type ITableComponentType = ((
   props: ITableProps & { ref?: MutableRefObject<ICoolTableRef> }
 ) => JSX.Element) & {
   Cell: React.MemoExoticComponent<
-    (props: ITableCellProps & { ref?: MutableRefObject<any> }) => JSX.Element
+    React.ForwardRefExoticComponent<ITableCellProps & React.RefAttributes<any>>
   >;
   Row: React.MemoExoticComponent<
-    (props: ITableRowProps & { ref?: MutableRefObject<any> }) => JSX.Element
+    React.ForwardRefExoticComponent<ITableRowProps & React.RefAttributes<any>>
   >;
   Sort: React.MemoExoticComponent<(props: ITableSortProps) => JSX.Element>;
   sortStatus: Record<string, TSortType>;

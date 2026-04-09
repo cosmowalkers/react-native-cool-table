@@ -151,6 +151,15 @@ const Row = (
     toggleExpand(rowKeyValue);
   }, [treeConfig?.animationDuration, toggleExpand, rowKeyValue]);
 
+  // === Cached right-fixed column translateX ===
+  const rightTranslateX = useMemo(() => {
+    const rightFixedWidth = columns
+      .filter((c) => c.fixed === 'right')
+      .reduce((sum, c) => sum + (Number(c.width) || 0), 0);
+    if (rightFixedWidth === 0) return null;
+    return Animated.add(positionX, contentWidth - rightFixedWidth);
+  }, [columns, positionX, contentWidth]);
+
   const renderColumns = useCallback(() => {
     if (!isArray(columns) || isEmpty(columns)) return null;
 
@@ -257,14 +266,7 @@ const Row = (
         );
       }
 
-      if (isFixedRight(fixed)) {
-        const rightFixedWidth = columns
-          .filter((c) => c.fixed === 'right')
-          .reduce((sum, c) => sum + (Number(c.width) || 0), 0);
-        const rightTranslateX = Animated.add(
-          positionX,
-          contentWidth - rightFixedWidth
-        );
+      if (isFixedRight(fixed) && rightTranslateX) {
         return (
           <Animated.View
             key={`table-column-${rowIndex}-${colIndex}`}
@@ -297,7 +299,7 @@ const Row = (
     depth,
     hasHeaderMultipleLine,
     positionX,
-    contentWidth,
+    rightTranslateX,
     _onExpandChange,
     expanded,
     seqConfig,

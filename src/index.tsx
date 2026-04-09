@@ -35,13 +35,12 @@ export type {
 export { useTableStatic, useTableState } from './context';
 import { SORT_STATUS_MAP } from './constant';
 
-const TableTemp: any = MainTable;
-TableTemp.sortStatus = SORT_STATUS_MAP;
-TableTemp.Cell = Cell;
-TableTemp.Row = Row;
-TableTemp.Sort = Sort;
-
-const CoolTable = TableTemp as ITableComponentType;
+const CoolTable = Object.assign(MainTable, {
+  Cell,
+  Row,
+  Sort,
+  sortStatus: SORT_STATUS_MAP,
+}) as ITableComponentType;
 
 export { Cell, Row, Sort };
 export default CoolTable;

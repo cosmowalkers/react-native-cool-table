@@ -1,0 +1,26 @@
+# Unused asset images (only empty.png is referenced)
+src/assets/404.png
+src/assets/网络断开.png
+src/assets/等待状态.png
+src/assets/页面内容为空.png
+src/assets/暂无订单.png
+src/assets/无权限访问.png
+src/assets/搜索内容为空.png
+src/assets/信息正在入库.png
+src/assets/列表内容为空.png
+src/assets/未开通支付方式.png
+src/assets/加载失败.png
+src/assets/未绑定账户.png
+
+# Development files
+example/
+src/__tests__/
+.circleci/
+.editorconfig
+.eslintignore
+CONTRIBUTING.md
+AGENTS.md
+CLAUDE.md
+babel.config.js
+tsconfig.json
+tsconfig.build.json
