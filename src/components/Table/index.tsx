@@ -33,6 +33,7 @@ import type {
 } from '../../types';
 import { isFunction } from 'lodash';
 import Row from '../Row';
+import HeaderRow from '../HeaderRow';
 import { TableStaticContext, TableStateContext } from '../../context';
 import { buildRowKey } from '../../utils';
 import useSort from '../../hooks/useSort';
@@ -44,6 +45,7 @@ import useUpdateEffect from '../../hooks/useUpdateEffect';
 import useTooltip from '../../hooks/useTooltip';
 import usePagination from '../../hooks/usePagination';
 import { useColumnVisibility } from '../../hooks/useColumnVisibility';
+import { useGroupedColumns } from '../../hooks/useGroupedColumns';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -99,6 +101,11 @@ const Table = (
   // === Column Visibility ===
   const { visibleColumns, hideColumn, showColumn, getHiddenColumns } =
     useColumnVisibility({ columns, columnVisibilityConfig });
+
+  // === Grouped Columns ===
+  const { leafColumns, headerLevels } = useGroupedColumns({
+    columns: visibleColumns,
+  });
 
   // === Sort ===
   const { sortState, setSortState, multiSortState, setMultiSortState } =
@@ -161,16 +168,17 @@ const Table = (
   }, [rowConfig?.currentRowKey]);
 
   // === Column ordering (fixed left → normal → fixed right) ===
+  // 使用 leafColumns（扁平化后的叶子列），因为 Row/Cell 只需要叶子列
   useEffect(() => {
     setColumns(() => {
-      const fixedLeft = visibleColumns.filter(
+      const fixedLeft = leafColumns.filter(
         (c) => c.fixed === true || c.fixed === 'left'
       );
-      const fixedRight = visibleColumns.filter((c) => c.fixed === 'right');
-      const normal = visibleColumns.filter((c) => !c.fixed);
+      const fixedRight = leafColumns.filter((c) => c.fixed === 'right');
+      const normal = leafColumns.filter((c) => !c.fixed);
       return [...fixedLeft, ...normal, ...fixedRight];
     });
-  }, [visibleColumns]);
+  }, [leafColumns]);
 
   // === Expand ===
   const toggleExpand = useCallback(
@@ -236,6 +244,7 @@ const Table = (
       ellipsisConfig,
       paginationConfig,
       searchConfig,
+      headerLevels,
     }),
     [
       _columns,
@@ -258,6 +267,7 @@ const Table = (
       ellipsisConfig,
       paginationConfig,
       searchConfig,
+      headerLevels,
     ]
   );
 
@@ -478,15 +488,6 @@ const Table = (
     [onLayout]
   );
 
-  // === Header data ===
-  const headerData = useMemo(() => {
-    const obj: Record<string, string> = {};
-    _columns.forEach((c) => {
-      obj[c.key] = c.title;
-    });
-    return obj;
-  }, [_columns]);
-
   const getListKey = useCallback(
     (item: TItem, index: number) => {
       if (keyExtractor) return keyExtractor(item, index);
@@ -531,15 +532,9 @@ const Table = (
 
   const renderHeader = useCallback(
     () => (
-      <Row
-        data={headerData}
-        rowIndex={-1}
-        rowKeyValue="__header__"
-        isHeader
-        style={headerRowStyle}
-      />
+      <HeaderRow headerLevels={headerLevels} headerRowStyle={headerRowStyle} />
     ),
-    [headerData, headerRowStyle]
+    [headerLevels, headerRowStyle]
   );
 
   // === Footer rows (footerConfig) ===
