@@ -15,6 +15,7 @@ import type {
 } from '../../types';
 import { SORT_STATUS_MAP } from '../../constant';
 import Sort from '../Sort';
+import HighlightText from '../HighlightText';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
 
@@ -50,7 +51,11 @@ const Cell = (
     filterRender,
   } = col;
 
-  const { sortConfig, ellipsisConfig: globalEllipsisConfig } = useTableStatic();
+  const {
+    sortConfig,
+    ellipsisConfig: globalEllipsisConfig,
+    searchConfig,
+  } = useTableStatic();
   const {
     sortState,
     setSortState,
@@ -317,6 +322,18 @@ const Cell = (
     );
   };
 
+  // === Search highlight scope check ===
+  const isSearchActive = useMemo(() => {
+    if (isHeader) return false;
+    if (!searchConfig?.keyword || searchConfig.keyword.length === 0)
+      return false;
+    // If columnKeys is specified, only highlight those columns
+    if (searchConfig.columnKeys && searchConfig.columnKeys.length > 0) {
+      return searchConfig.columnKeys.includes(key);
+    }
+    return true;
+  }, [isHeader, searchConfig?.keyword, searchConfig?.columnKeys, key]);
+
   // === Render default cell text ===
   const renderCell = () => {
     if (isCheckboxType) return renderCheckbox();
@@ -327,25 +344,45 @@ const Cell = (
     if (isNil(val)) return null;
     const vals = isArray(val) ? val : [val];
     const ellipsisLines = effectiveEllipsis?.numberOfLines ?? undefined;
-    return vals.map((item, index) => (
-      <Text
-        key={`table-cell-${key}-${item}-${index}`}
-        numberOfLines={ellipsisLines ?? 2}
-        ellipsizeMode={ellipsisLines ? 'tail' : undefined}
-        style={[
-          styles.text,
-          {
-            textAlign: fixed ? 'left' : 'right',
-            color: isHeader ? '#929AA6' : '#1F2733',
-          },
-          isHeader ? hTextStyle : textStyle,
-          index >= 1 && styles.second_text,
-          index >= 1 && secondTextStyle,
-        ]}
-      >
-        {item}
-      </Text>
-    ));
+    return vals.map((item, index) => {
+      const textVal = String(item);
+      const textAlign = fixed ? ('left' as const) : ('right' as const);
+      const cellStyle = [
+        styles.text,
+        {
+          textAlign,
+          color: isHeader ? '#929AA6' : '#1F2733',
+        },
+        isHeader ? hTextStyle : textStyle,
+        index >= 1 && styles.second_text,
+        index >= 1 && secondTextStyle,
+      ];
+
+      if (isSearchActive) {
+        return (
+          <HighlightText
+            key={`table-cell-${key}-${textVal}-${index}`}
+            text={textVal}
+            keyword={searchConfig!.keyword}
+            caseSensitive={searchConfig!.caseSensitive}
+            highlightStyle={searchConfig!.highlightStyle}
+            style={cellStyle}
+            numberOfLines={ellipsisLines ?? 2}
+          />
+        );
+      }
+
+      return (
+        <Text
+          key={`table-cell-${key}-${textVal}-${index}`}
+          numberOfLines={ellipsisLines ?? 2}
+          ellipsizeMode={ellipsisLines ? 'tail' : undefined}
+          style={cellStyle}
+        >
+          {item}
+        </Text>
+      );
+    });
   };
 
   const renderArrow = () =>

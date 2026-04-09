@@ -85,6 +85,7 @@ const Table = (
     rowConfig,
     ellipsisConfig,
     paginationConfig,
+    searchConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -228,6 +229,7 @@ const Table = (
       rowConfig,
       ellipsisConfig,
       paginationConfig,
+      searchConfig,
     }),
     [
       _columns,
@@ -249,6 +251,7 @@ const Table = (
       rowConfig,
       ellipsisConfig,
       paginationConfig,
+      searchConfig,
     ]
   );
 

@@ -6,3 +6,4 @@ export { default as useRadio } from './useRadio';
 export { default as useTableData } from './useTableData';
 export { default as useTooltip } from './useTooltip';
 export { default as usePagination } from './usePagination';
+export { useSearchHighlight } from './useSearchHighlight';
