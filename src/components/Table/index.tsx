@@ -43,6 +43,7 @@ import useTableData from '../../hooks/useTableData';
 import useUpdateEffect from '../../hooks/useUpdateEffect';
 import useTooltip from '../../hooks/useTooltip';
 import usePagination from '../../hooks/usePagination';
+import { useColumnVisibility } from '../../hooks/useColumnVisibility';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -86,6 +87,7 @@ const Table = (
     ellipsisConfig,
     paginationConfig,
     searchConfig,
+    columnVisibilityConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -93,6 +95,10 @@ const Table = (
   const [contentWidth, setContentWidth] = useState(0);
   const [positionX] = useState(new Animated.Value(0));
   const flatListRef = useRef<FlatList>(null);
+
+  // === Column Visibility ===
+  const { visibleColumns, hideColumn, showColumn, getHiddenColumns } =
+    useColumnVisibility({ columns, columnVisibilityConfig });
 
   // === Sort ===
   const { sortState, setSortState, multiSortState, setMultiSortState } =
@@ -157,14 +163,14 @@ const Table = (
   // === Column ordering (fixed left → normal → fixed right) ===
   useEffect(() => {
     setColumns(() => {
-      const fixedLeft = columns.filter(
+      const fixedLeft = visibleColumns.filter(
         (c) => c.fixed === true || c.fixed === 'left'
       );
-      const fixedRight = columns.filter((c) => c.fixed === 'right');
-      const normal = columns.filter((c) => !c.fixed);
+      const fixedRight = visibleColumns.filter((c) => c.fixed === 'right');
+      const normal = visibleColumns.filter((c) => !c.fixed);
       return [...fixedLeft, ...normal, ...fixedRight];
     });
-  }, [columns]);
+  }, [visibleColumns]);
 
   // === Expand ===
   const toggleExpand = useCallback(
@@ -425,6 +431,10 @@ const Table = (
       // Pagination
       setPage: paginationSetPage,
       setPageSize: paginationSetPageSize,
+      // Column Visibility
+      hideColumn,
+      showColumn,
+      getHiddenColumns,
     }),
     [
       data,
@@ -445,6 +455,9 @@ const Table = (
       setMultiSortState,
       paginationSetPage,
       paginationSetPageSize,
+      hideColumn,
+      showColumn,
+      getHiddenColumns,
     ]
   );
 

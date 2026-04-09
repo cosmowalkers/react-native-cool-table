@@ -3,6 +3,7 @@ import Row from './components/Row';
 import MainTable from './components/Table';
 import Sort from './components/Sort';
 import Pagination from './components/Pagination';
+import ColumnManager from './components/ColumnManager';
 import type { ITableComponentType } from './types/index';
 export type {
   ITableProps,
@@ -61,5 +62,5 @@ const CoolTable = Object.assign(MainTable, {
   sortStatus: SORT_STATUS_MAP,
 }) as ITableComponentType;
 
-export { Cell, Row, Sort, Pagination };
+export { Cell, Row, Sort, Pagination, ColumnManager };
 export default CoolTable;
