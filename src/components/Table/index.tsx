@@ -42,7 +42,9 @@ import useRadio from '../../hooks/useRadio';
 import useTableData from '../../hooks/useTableData';
 import useUpdateEffect from '../../hooks/useUpdateEffect';
 import useTooltip from '../../hooks/useTooltip';
+import usePagination from '../../hooks/usePagination';
 import Tooltip from '../Tooltip';
+import Pagination from '../Pagination';
 
 if (Platform.OS === 'android') {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -82,6 +84,7 @@ const Table = (
     virtualConfig,
     rowConfig,
     ellipsisConfig,
+    paginationConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -123,6 +126,17 @@ const Table = (
     sortConfig,
     columns: _columns,
   });
+
+  // === Pagination ===
+  const {
+    paginatedData,
+    currentPage: paginationPage,
+    pageSize: paginationPageSize,
+    total: paginationTotal,
+    maxPage: paginationMaxPage,
+    setPage: paginationSetPage,
+    setPageSize: paginationSetPageSize,
+  } = usePagination({ paginationConfig, data: processedData });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -213,6 +227,7 @@ const Table = (
       borderColor,
       rowConfig,
       ellipsisConfig,
+      paginationConfig,
     }),
     [
       _columns,
@@ -233,6 +248,7 @@ const Table = (
       borderColor,
       rowConfig,
       ellipsisConfig,
+      paginationConfig,
     ]
   );
 
@@ -403,6 +419,9 @@ const Table = (
         }
         _setAllRowExpand(expanded);
       },
+      // Pagination
+      setPage: paginationSetPage,
+      setPageSize: paginationSetPageSize,
     }),
     [
       data,
@@ -421,6 +440,8 @@ const Table = (
       setRadioKey,
       setSortState,
       setMultiSortState,
+      paginationSetPage,
+      paginationSetPageSize,
     ]
   );
 
@@ -629,7 +650,7 @@ const Table = (
             onScroll={onScroll}
           >
             <View>
-              {processedData?.length ? (
+              {paginatedData?.length ? (
                 <FlatList
                   ref={flatListRef}
                   showsVerticalScrollIndicator={false}
@@ -641,7 +662,7 @@ const Table = (
                   ListFooterComponent={renderFooter}
                   {...virtualProps}
                   {...flatListProps}
-                  data={processedData}
+                  data={paginatedData}
                   renderItem={renderItem}
                 />
               ) : (
@@ -649,6 +670,17 @@ const Table = (
               )}
             </View>
           </Animated.ScrollView>
+          {paginationConfig && (
+            <Pagination
+              currentPage={paginationPage}
+              pageSize={paginationPageSize}
+              total={paginationTotal}
+              maxPage={paginationMaxPage}
+              onPageChange={paginationSetPage}
+              onPageSizeChange={paginationSetPageSize}
+              paginationConfig={paginationConfig}
+            />
+          )}
           {renderLoading()}
           <Tooltip state={tooltipState} onClose={hideTooltip} />
         </View>
