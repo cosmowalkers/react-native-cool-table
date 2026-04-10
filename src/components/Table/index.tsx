@@ -48,6 +48,7 @@ import { useColumnVisibility } from '../../hooks/useColumnVisibility';
 import { useGroupedColumns } from '../../hooks/useGroupedColumns';
 import { useColumnResize } from '../../hooks/useColumnResize';
 import { useCellMerge } from '../../hooks/useCellMerge';
+import { useRowDragSort } from '../../hooks/useRowDragSort';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -94,6 +95,7 @@ const Table = (
     columnVisibilityConfig,
     resizeConfig,
     spanMethod,
+    dragSortConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -168,6 +170,10 @@ const Table = (
     columns: _columns,
     spanMethod,
   });
+
+  // === Row Drag Sort ===
+  const { dragIndex, targetIndex, startDrag, moveDrag, endDrag } =
+    useRowDragSort({ dragSortConfig, data: paginatedData });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -264,6 +270,7 @@ const Table = (
       headerLevels,
       resizeConfig,
       spanMethod,
+      dragSortConfig,
     }),
     [
       _columns,
@@ -289,6 +296,7 @@ const Table = (
       headerLevels,
       resizeConfig,
       spanMethod,
+      dragSortConfig,
     ]
   );
 
@@ -320,6 +328,11 @@ const Table = (
       setColumnWidth,
       getCellSpan,
       isCellVisible,
+      dragIndex,
+      targetIndex,
+      startDrag,
+      moveDrag,
+      endDrag,
     }),
     [
       sortState,
@@ -347,6 +360,11 @@ const Table = (
       setColumnWidth,
       getCellSpan,
       isCellVisible,
+      dragIndex,
+      targetIndex,
+      startDrag,
+      moveDrag,
+      endDrag,
     ]
   );
 

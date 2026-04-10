@@ -18,6 +18,7 @@ import Sort from '../Sort';
 import HighlightText from '../HighlightText';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
+import DragHandle from '../DragHandle';
 
 const Cell = (
   {
@@ -55,6 +56,7 @@ const Cell = (
     sortConfig,
     ellipsisConfig: globalEllipsisConfig,
     searchConfig,
+    dragSortConfig,
   } = useTableStatic();
   const {
     sortState,
@@ -72,6 +74,9 @@ const Cell = (
     setFilterState,
     clearFilterState,
     showTooltip,
+    startDrag,
+    moveDrag,
+    endDrag,
   } = useTableState();
 
   const [filterVisible, setFilterVisible] = useState(false);
@@ -154,6 +159,7 @@ const Cell = (
   // === Checkbox state ===
   const isCheckboxType = type === 'checkbox';
   const isRadioType = type === 'radio';
+  const isDragType = type === 'drag';
 
   const _rowKey = rowKeyValue ?? String(rowIndex);
 
@@ -334,8 +340,26 @@ const Cell = (
     return true;
   }, [isHeader, searchConfig?.keyword, searchConfig?.columnKeys, key]);
 
+  // === Render drag handle ===
+  const renderDragHandle = () => {
+    if (!isDragType || isHeader) return null;
+    const isDragDisabled = isFunction(dragSortConfig?.dragMethod)
+      ? !dragSortConfig!.dragMethod({ row, rowIndex })
+      : false;
+    return (
+      <DragHandle
+        rowIndex={rowIndex}
+        startDrag={startDrag ?? (() => {})}
+        moveDrag={moveDrag ?? (() => {})}
+        endDrag={endDrag ?? (() => {})}
+        disabled={isDragDisabled}
+      />
+    );
+  };
+
   // === Render default cell text ===
   const renderCell = () => {
+    if (isDragType) return renderDragHandle();
     if (isCheckboxType) return renderCheckbox();
     if (isRadioType) {
       if (isHeader) return null;

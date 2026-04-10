@@ -564,6 +564,12 @@ export interface ITableStateContextValue {
   dragIndex?: number | null;
   /** 拖拽目标索引 */
   targetIndex?: number | null;
+  /** 开始拖拽 */
+  startDrag?: (index: number) => void;
+  /** 移动拖拽 */
+  moveDrag?: (index: number) => void;
+  /** 结束拖拽 */
+  endDrag?: () => void;
   /** 隐藏列 key 集合 */
   hiddenColumnKeys?: Set<string>;
   /** 显示 tooltip */
