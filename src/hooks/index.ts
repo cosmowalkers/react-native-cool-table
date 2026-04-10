@@ -16,3 +16,4 @@ export { useTreeLazyLoad } from './useTreeLazyLoad';
 export { useEditableCell } from './useEditableCell';
 export { useValidation } from './useValidation';
 export { useContextMenu } from './useContextMenu';
+export { useTableContextValues } from './useTableContextValues';
