@@ -10,3 +10,4 @@ export { useSearchHighlight } from './useSearchHighlight';
 export { useColumnVisibility } from './useColumnVisibility';
 export { useGroupedColumns } from './useGroupedColumns';
 export { useColumnResize } from './useColumnResize';
+export { useCellMerge } from './useCellMerge';

@@ -232,7 +232,7 @@ describe('P0+P1 type definitions', () => {
     const partial: Partial<ITableStaticContextValue> = {
       resizeConfig: { enabled: true },
       headerLevels: [],
-      mergeMap: new Map(),
+      spanMethod: () => ({ rowspan: 1, colspan: 1 }),
       dragSortConfig: {},
       paginationConfig: {},
       ellipsisConfig: {},

@@ -47,6 +47,7 @@ import usePagination from '../../hooks/usePagination';
 import { useColumnVisibility } from '../../hooks/useColumnVisibility';
 import { useGroupedColumns } from '../../hooks/useGroupedColumns';
 import { useColumnResize } from '../../hooks/useColumnResize';
+import { useCellMerge } from '../../hooks/useCellMerge';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -92,6 +93,7 @@ const Table = (
     searchConfig,
     columnVisibilityConfig,
     resizeConfig,
+    spanMethod,
   }: ITableProps,
   ref: any
 ) => {
@@ -159,6 +161,13 @@ const Table = (
     setPage: paginationSetPage,
     setPageSize: paginationSetPageSize,
   } = usePagination({ paginationConfig, data: processedData });
+
+  // === Cell Merge ===
+  const { getCellSpan, isCellVisible } = useCellMerge({
+    data: paginatedData,
+    columns: _columns,
+    spanMethod,
+  });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -254,6 +263,7 @@ const Table = (
       searchConfig,
       headerLevels,
       resizeConfig,
+      spanMethod,
     }),
     [
       _columns,
@@ -278,6 +288,7 @@ const Table = (
       searchConfig,
       headerLevels,
       resizeConfig,
+      spanMethod,
     ]
   );
 
@@ -307,6 +318,8 @@ const Table = (
       hideTooltip,
       columnWidths,
       setColumnWidth,
+      getCellSpan,
+      isCellVisible,
     }),
     [
       sortState,
@@ -332,6 +345,8 @@ const Table = (
       hideTooltip,
       columnWidths,
       setColumnWidth,
+      getCellSpan,
+      isCellVisible,
     ]
   );
 

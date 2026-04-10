@@ -487,8 +487,8 @@ export interface ITableStaticContextValue {
   resizeConfig?: IResizeConfig;
   /** 分组表头层级 */
   headerLevels?: THeaderLevel[];
-  /** 单元格合并映射 */
-  mergeMap?: Map<string, ISpanResult>;
+  /** 单元格合并方法 */
+  spanMethod?: TSpanMethod;
   /** 行拖拽排序配置 */
   dragSortConfig?: IDragSortConfig;
   /** 分页配置 */
@@ -534,6 +534,13 @@ export interface ITableStateContextValue {
   /** P0: 当前高亮行 key */
   currentRowKey: string | null;
   setCurrentRowKey: (key: string | null) => void;
+
+  // === P0-3: Cell Merge ===
+
+  /** 获取单元格合并信息 */
+  getCellSpan?: (rowIndex: number, colIndex: number) => ISpanResult;
+  /** 判断单元格是否可见（未被 colspan 覆盖） */
+  isCellVisible?: (rowIndex: number, colIndex: number) => boolean;
 
   // === P0+P1 新增（全部可选，避免破坏现有 Table 实现） ===
 

@@ -55,6 +55,8 @@ const Row = (
     currentRowKey,
     setCurrentRowKey,
     columnWidths,
+    getCellSpan,
+    isCellVisible,
   } = useTableState();
 
   const expanded = isExpanded(rowKeyValue);
@@ -168,6 +170,11 @@ const Row = (
     if (!isArray(columns) || isEmpty(columns)) return null;
 
     return columns.map((column, colIndex, arr) => {
+      // === Cell Merge: skip hidden cells ===
+      if (!isHeader && isCellVisible && !isCellVisible(rowIndex, colIndex)) {
+        return null;
+      }
+
       const {
         key = '',
         keySplitSymbol = '/',
@@ -222,8 +229,28 @@ const Row = (
           : styles.justify_center,
         { paddingLeft: isFirst ? 0 : 16, paddingRight: isLast ? 0 : 16 },
       ];
-      const dynamicWidth = columnWidths?.get(column.key) ?? width;
-      if (dynamicWidth) _cellStyle.push({ width: dynamicWidth });
+      // === Cell Merge: compute merged width for colspan > 1 ===
+      const spanResult =
+        !isHeader && getCellSpan ? getCellSpan(rowIndex, colIndex) : null;
+      const colspanCount = spanResult ? spanResult.colspan : 1;
+
+      let mergedWidth: number | string | undefined;
+      if (colspanCount > 1) {
+        // Sum widths of all merged columns
+        let totalWidth = 0;
+        for (let offset = 0; offset < colspanCount; offset++) {
+          const mergedCol = columns[colIndex + offset];
+          if (mergedCol) {
+            totalWidth +=
+              columnWidths?.get(mergedCol.key) ??
+              (Number(mergedCol.width) || 0);
+          }
+        }
+        mergedWidth = totalWidth > 0 ? totalWidth : undefined;
+      } else {
+        mergedWidth = columnWidths?.get(column.key) ?? width;
+      }
+      if (mergedWidth) _cellStyle.push({ width: mergedWidth });
       if (alignRes) _cellStyle.push({ alignItems: alignRes });
 
       // Inner border for cells (vertical separator)
@@ -312,6 +339,8 @@ const Row = (
     borderColorProp,
     rowKeyValue,
     columnWidths,
+    getCellSpan,
+    isCellVisible,
   ]);
 
   const renderSeparator = () => {
