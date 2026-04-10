@@ -23,6 +23,7 @@ import { SORT_STATUS_MAP } from '../../constant';
 import Sort from '../Sort';
 import HighlightText from '../HighlightText';
 import EditCell from '../EditCell';
+import ValidationError from '../ValidationError';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
 import DragHandle from '../DragHandle';
@@ -66,6 +67,7 @@ const Cell = (
     dragSortConfig,
     treeConfig,
     editConfig,
+    validationConfig,
   } = useTableStatic();
   const {
     sortState,
@@ -91,6 +93,7 @@ const Cell = (
     setEditingCell,
     editValues,
     setEditValue,
+    validationErrors,
   } = useTableState();
 
   const [filterVisible, setFilterVisible] = useState(false);
@@ -658,6 +661,20 @@ const Cell = (
         {renderFilterIcon()}
       </TouchableOpacity>
       {renderFilterModal()}
+      {validationConfig?.showInline &&
+        (() => {
+          const cellErrors =
+            validationErrors?.filter(
+              (e) => e.rowKey === _rowKey && e.columnKey === key
+            ) ?? [];
+          return cellErrors.length > 0 ? (
+            <ValidationError
+              errors={cellErrors}
+              style={validationConfig.errorStyle}
+              textStyle={validationConfig.errorTextStyle}
+            />
+          ) : null;
+        })()}
     </>
   );
 };

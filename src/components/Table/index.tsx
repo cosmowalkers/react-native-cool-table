@@ -51,6 +51,7 @@ import { useCellMerge } from '../../hooks/useCellMerge';
 import { useRowDragSort } from '../../hooks/useRowDragSort';
 import { useTreeLazyLoad } from '../../hooks/useTreeLazyLoad';
 import { useEditableCell } from '../../hooks/useEditableCell';
+import { useValidation } from '../../hooks/useValidation';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -99,6 +100,7 @@ const Table = (
     spanMethod,
     dragSortConfig,
     editConfig,
+    validationConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -191,6 +193,14 @@ const Table = (
     setEditValue,
     cancelEdit: editCancelEdit,
   } = useEditableCell({ editConfig });
+
+  // === Validation ===
+  const {
+    validationErrors,
+    validate: validateAll,
+    validateRow: validationValidateRow,
+    clearValidation,
+  } = useValidation({ columns: _columns, data: paginatedData, rowKey });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -289,6 +299,7 @@ const Table = (
       spanMethod,
       dragSortConfig,
       editConfig,
+      validationConfig,
     }),
     [
       _columns,
@@ -316,6 +327,7 @@ const Table = (
       spanMethod,
       dragSortConfig,
       editConfig,
+      validationConfig,
     ]
   );
 
@@ -360,6 +372,7 @@ const Table = (
       setEditingCell,
       editValues,
       setEditValue,
+      validationErrors,
     }),
     [
       sortState,
@@ -400,6 +413,7 @@ const Table = (
       setEditingCell,
       editValues,
       setEditValue,
+      validationErrors,
     ]
   );
 
@@ -535,10 +549,23 @@ const Table = (
         setEditingCell({ rowKey: rowKey_, columnKey }),
       cancelEdit: editCancelEdit,
       getEditValues: () => editValues,
+      // Validation
+      validate: () => validateAll(paginatedData),
+      validateRow: (rk: string) => {
+        const row = paginatedData.find(
+          (item, idx) => buildRowKey(rowKey, item, idx) === rk
+        );
+        if (row) {
+          return validationValidateRow(rk, row);
+        }
+        return Promise.resolve([]);
+      },
+      clearValidation,
     }),
     [
       data,
       processedData,
+      paginatedData,
       checkedKeys,
       radioKey,
       sortState,
@@ -564,6 +591,9 @@ const Table = (
       setEditingCell,
       editCancelEdit,
       editValues,
+      validateAll,
+      validationValidateRow,
+      clearValidation,
     ]
   );
 
