@@ -17,6 +17,14 @@ import MultiSortDemo from '../demos/MultiSortDemo';
 import CheckboxRadioDemo from '../demos/CheckboxRadioDemo';
 import FilterDemo from '../demos/FilterDemo';
 import StripeBorderDemo from '../demos/StripeBorderDemo';
+import ResizeDemo from '../demos/ResizeDemo';
+import GroupedHeaderDemo from '../demos/GroupedHeaderDemo';
+import CellMergeDemo from '../demos/CellMergeDemo';
+import DragSortDemo from '../demos/DragSortDemo';
+import PaginationDemo from '../demos/PaginationDemo';
+import EllipsisDemo from '../demos/EllipsisDemo';
+import EditDemo from '../demos/EditDemo';
+import SearchDemo from '../demos/SearchDemo';
 
 const DEMO_COMPONENTS: Record<string, React.ComponentType<any>> = {
   basic: BasicTableDemo,
@@ -33,6 +41,14 @@ const DEMO_COMPONENTS: Record<string, React.ComponentType<any>> = {
   checkboxRadio: CheckboxRadioDemo,
   filter: FilterDemo,
   stripeBorder: StripeBorderDemo,
+  resize: ResizeDemo,
+  groupedHeader: GroupedHeaderDemo,
+  cellMerge: CellMergeDemo,
+  dragSort: DragSortDemo,
+  pagination: PaginationDemo,
+  ellipsis: EllipsisDemo,
+  edit: EditDemo,
+  search: SearchDemo,
 };
 
 type DemoScreenProps = StackScreenProps<RootStackParamList, 'Demo'>;
