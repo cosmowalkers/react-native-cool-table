@@ -13,3 +13,4 @@ export { useColumnResize } from './useColumnResize';
 export { useCellMerge } from './useCellMerge';
 export { useRowDragSort } from './useRowDragSort';
 export { useTreeLazyLoad } from './useTreeLazyLoad';
+export { useEditableCell } from './useEditableCell';

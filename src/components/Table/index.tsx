@@ -50,6 +50,7 @@ import { useColumnResize } from '../../hooks/useColumnResize';
 import { useCellMerge } from '../../hooks/useCellMerge';
 import { useRowDragSort } from '../../hooks/useRowDragSort';
 import { useTreeLazyLoad } from '../../hooks/useTreeLazyLoad';
+import { useEditableCell } from '../../hooks/useEditableCell';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -97,6 +98,7 @@ const Table = (
     resizeConfig,
     spanMethod,
     dragSortConfig,
+    editConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -180,6 +182,15 @@ const Table = (
   const { loadingKeys, triggerLoad, isLoaded, getChildren } = useTreeLazyLoad({
     treeConfig,
   });
+
+  // === Inline Edit ===
+  const {
+    editingCell,
+    setEditingCell,
+    editValues,
+    setEditValue,
+    cancelEdit: editCancelEdit,
+  } = useEditableCell({ editConfig });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -277,6 +288,7 @@ const Table = (
       resizeConfig,
       spanMethod,
       dragSortConfig,
+      editConfig,
     }),
     [
       _columns,
@@ -303,6 +315,7 @@ const Table = (
       resizeConfig,
       spanMethod,
       dragSortConfig,
+      editConfig,
     ]
   );
 
@@ -343,6 +356,10 @@ const Table = (
       startDrag,
       moveDrag,
       endDrag,
+      editingCell,
+      setEditingCell,
+      editValues,
+      setEditValue,
     }),
     [
       sortState,
@@ -379,6 +396,10 @@ const Table = (
       startDrag,
       moveDrag,
       endDrag,
+      editingCell,
+      setEditingCell,
+      editValues,
+      setEditValue,
     ]
   );
 
@@ -509,6 +530,11 @@ const Table = (
       // Column Resize
       setColumnWidth: resizeConfig?.enabled ? setColumnWidth : undefined,
       getColumnWidths: resizeConfig?.enabled ? getColumnWidths : undefined,
+      // Inline Edit
+      startEdit: (rowKey_: string, columnKey: string) =>
+        setEditingCell({ rowKey: rowKey_, columnKey }),
+      cancelEdit: editCancelEdit,
+      getEditValues: () => editValues,
     }),
     [
       data,
@@ -535,6 +561,9 @@ const Table = (
       resizeConfig?.enabled,
       setColumnWidth,
       getColumnWidths,
+      setEditingCell,
+      editCancelEdit,
+      editValues,
     ]
   );
 

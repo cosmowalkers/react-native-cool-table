@@ -22,6 +22,7 @@ import type {
 import { SORT_STATUS_MAP } from '../../constant';
 import Sort from '../Sort';
 import HighlightText from '../HighlightText';
+import EditCell from '../EditCell';
 import styles from './styles';
 import { useTableStatic, useTableState } from '../../context';
 import DragHandle from '../DragHandle';
@@ -64,6 +65,7 @@ const Cell = (
     searchConfig,
     dragSortConfig,
     treeConfig,
+    editConfig,
   } = useTableStatic();
   const {
     sortState,
@@ -85,6 +87,10 @@ const Cell = (
     moveDrag,
     endDrag,
     loadingKeys,
+    editingCell,
+    setEditingCell,
+    editValues,
+    setEditValue,
   } = useTableState();
 
   const [filterVisible, setFilterVisible] = useState(false);
@@ -176,6 +182,29 @@ const Cell = (
 
   const _rowKey = rowKeyValue ?? String(rowIndex);
 
+  // === Inline edit state ===
+  const isEditing = useMemo(
+    () =>
+      !isHeader &&
+      editingCell?.rowKey === _rowKey &&
+      editingCell?.columnKey === key,
+    [isHeader, editingCell, _rowKey, key]
+  );
+
+  const editKey = `${_rowKey}-${key}`;
+  const currentEditValue = editValues?.get(editKey);
+
+  const _onEditSave = useCallback(
+    (newValue: unknown) => {
+      setEditValue?.(editKey, newValue);
+    },
+    [editKey, setEditValue]
+  );
+
+  const _onEditCancel = useCallback(() => {
+    setEditingCell?.(null);
+  }, [setEditingCell]);
+
   const _onPress = useCallback(() => {
     if (isCheckboxType) {
       if (isHeader) {
@@ -214,6 +243,16 @@ const Cell = (
       onExpandChange?.();
       return;
     }
+    // === Click-trigger inline edit ===
+    if (
+      editConfig?.trigger === 'click' &&
+      col.editable &&
+      !isHeader &&
+      setEditingCell
+    ) {
+      setEditingCell({ rowKey: _rowKey, columnKey: key });
+      return;
+    }
     if (isFunction(onPress)) {
       onPress({ val, col, row, rowIndex, colIndex, isHeader });
     }
@@ -241,6 +280,8 @@ const Cell = (
     toggleCheckedAll,
     setRadioKey,
     _rowKey,
+    editConfig?.trigger,
+    setEditingCell,
   ]);
 
   // === Tooltip long-press handler ===
@@ -572,6 +613,23 @@ const Cell = (
   const hasTooltip = !!effectiveEllipsis && !!showTooltip;
   const tooltipTrigger = effectiveEllipsis?.trigger ?? 'longPress';
 
+  // === Inline edit mode: render EditCell instead of normal content ===
+  if (isEditing) {
+    const cellValue = currentEditValue !== undefined ? currentEditValue : val;
+    return (
+      <View style={[styles.content, style]}>
+        <EditCell
+          row={row}
+          column={col}
+          value={cellValue}
+          rowKey={_rowKey}
+          onSave={_onEditSave}
+          onCancel={_onEditCancel}
+        />
+      </View>
+    );
+  }
+
   return (
     <>
       <TouchableOpacity
@@ -589,7 +647,8 @@ const Cell = (
           !isShowExpand &&
           !isCheckboxType &&
           !isRadioType &&
-          !hasTooltip
+          !hasTooltip &&
+          !(editConfig?.trigger === 'click' && col.editable)
         }
       >
         {renderExpand()}
