@@ -560,6 +560,12 @@ export interface ITableStateContextValue {
   validationErrors?: IValidationError[];
   /** 异步加载中的行 key 集合 */
   loadingKeys?: Set<string>;
+  /** 触发异步加载子节点 */
+  triggerLoad?: (rowKey: string, row: TItem, rowIndex: number) => Promise<void>;
+  /** 判断指定行是否已完成加载 */
+  isLoaded?: (rowKey: string) => boolean;
+  /** 获取已加载的子节点数据 */
+  getChildren?: (rowKey: string) => TItem[] | undefined;
   /** 拖拽起始索引 */
   dragIndex?: number | null;
   /** 拖拽目标索引 */

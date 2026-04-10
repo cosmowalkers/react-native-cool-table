@@ -49,6 +49,7 @@ import { useGroupedColumns } from '../../hooks/useGroupedColumns';
 import { useColumnResize } from '../../hooks/useColumnResize';
 import { useCellMerge } from '../../hooks/useCellMerge';
 import { useRowDragSort } from '../../hooks/useRowDragSort';
+import { useTreeLazyLoad } from '../../hooks/useTreeLazyLoad';
 import Tooltip from '../Tooltip';
 import Pagination from '../Pagination';
 
@@ -174,6 +175,11 @@ const Table = (
   // === Row Drag Sort ===
   const { dragIndex, targetIndex, startDrag, moveDrag, endDrag } =
     useRowDragSort({ dragSortConfig, data: paginatedData });
+
+  // === Tree Lazy Load ===
+  const { loadingKeys, triggerLoad, isLoaded, getChildren } = useTreeLazyLoad({
+    treeConfig,
+  });
 
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
@@ -328,6 +334,10 @@ const Table = (
       setColumnWidth,
       getCellSpan,
       isCellVisible,
+      loadingKeys,
+      triggerLoad,
+      isLoaded,
+      getChildren,
       dragIndex,
       targetIndex,
       startDrag,
@@ -360,6 +370,10 @@ const Table = (
       setColumnWidth,
       getCellSpan,
       isCellVisible,
+      loadingKeys,
+      triggerLoad,
+      isLoaded,
+      getChildren,
       dragIndex,
       targetIndex,
       startDrag,

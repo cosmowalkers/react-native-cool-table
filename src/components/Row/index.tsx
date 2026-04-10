@@ -5,6 +5,7 @@ import {
   TouchableWithoutFeedback,
   LayoutAnimation,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import type { ITableRowProps, TItem, ITableColumn } from '../../types';
@@ -57,6 +58,9 @@ const Row = (
     columnWidths,
     getCellSpan,
     isCellVisible,
+    loadingKeys,
+    triggerLoad,
+    getChildren: getLazyChildren,
   } = useTableState();
 
   const expanded = isExpanded(rowKeyValue);
@@ -118,9 +122,18 @@ const Row = (
     return undefined;
   }, [isHeader, radioConfig, radioKey, rowKeyValue]);
 
+  // Check for lazy-loaded children
+  const lazyChildren = getLazyChildren
+    ? getLazyChildren(rowKeyValue)
+    : undefined;
+  const isRowLoading = loadingKeys ? loadingKeys.has(rowKeyValue) : false;
+
+  // Consider both static children and lazy-loaded children
+  const hasChildren = !isEmpty(data?.children) || !isEmpty(lazyChildren);
+
   const nextExpandable = useMemo(() => {
-    return !isEmpty(data?.children) && treeConfig ? treeConfig : undefined;
-  }, [treeConfig, data?.children]);
+    return hasChildren && treeConfig ? treeConfig : undefined;
+  }, [treeConfig, hasChildren]);
 
   const hasHeaderMultipleLine = useMemo(() => {
     return isHeader && Object.keys(data).some((item) => item.includes('/'));
@@ -151,8 +164,26 @@ const Row = (
         LayoutAnimation.Properties.opacity
       )
     );
+
+    // If loadChildren is configured and there are no static children, trigger lazy load
+    if (
+      isFunction(treeConfig?.loadChildren) &&
+      isEmpty(data?.children) &&
+      triggerLoad
+    ) {
+      triggerLoad(rowKeyValue, data, rowIndex);
+    }
+
     toggleExpand(rowKeyValue);
-  }, [treeConfig?.animationDuration, toggleExpand, rowKeyValue]);
+  }, [
+    treeConfig?.animationDuration,
+    treeConfig?.loadChildren,
+    toggleExpand,
+    rowKeyValue,
+    data,
+    rowIndex,
+    triggerLoad,
+  ]);
 
   // === Cached right-fixed column translateX ===
   const rightTranslateX = useMemo(() => {
@@ -371,11 +402,40 @@ const Row = (
   );
 
   const renderExpand = () => {
-    if (isEmpty(data?.children) || !expanded) return null;
+    if (!expanded) return null;
+
+    // Determine children source: static children or lazy-loaded children
+    const childrenData = !isEmpty(data?.children)
+      ? data.children!
+      : lazyChildren;
+
+    // Show loading indicator while loading
+    if (isRowLoading) {
+      if (isFunction(treeConfig?.renderLoading)) {
+        return (
+          <View style={[styles.expand, treeConfig?.style]}>
+            {treeConfig!.renderLoading!()}
+          </View>
+        );
+      }
+      return (
+        <View
+          style={[
+            styles.expand,
+            { alignItems: 'center', justifyContent: 'center', padding: 12 },
+            treeConfig?.style,
+          ]}
+        >
+          <ActivityIndicator size="small" color="#1890ff" />
+        </View>
+      );
+    }
+
+    if (isEmpty(childrenData)) return null;
 
     if (isFunction(treeConfig?.renderExpand)) {
       return treeConfig?.renderExpand({
-        data: data?.children!,
+        data: childrenData!,
         parentData: data,
         index: rowIndex,
         columns,
@@ -392,7 +452,7 @@ const Row = (
         ]}
       >
         <ScrollView nestedScrollEnabled>
-          {data?.children?.map((item, index) =>
+          {childrenData?.map((item, index) =>
             isFunction(treeConfig?.renderItem)
               ? treeConfig?.renderItem({
                   item,

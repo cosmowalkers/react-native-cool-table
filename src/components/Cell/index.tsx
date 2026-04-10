@@ -7,7 +7,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Text, View, TouchableOpacity, Modal } from 'react-native';
+import {
+  Text,
+  View,
+  TouchableOpacity,
+  Modal,
+  ActivityIndicator,
+} from 'react-native';
 import type {
   ITableCellProps,
   IFilterOption,
@@ -57,6 +63,7 @@ const Cell = (
     ellipsisConfig: globalEllipsisConfig,
     searchConfig,
     dragSortConfig,
+    treeConfig,
   } = useTableStatic();
   const {
     sortState,
@@ -77,6 +84,7 @@ const Cell = (
     startDrag,
     moveDrag,
     endDrag,
+    loadingKeys,
   } = useTableState();
 
   const [filterVisible, setFilterVisible] = useState(false);
@@ -89,10 +97,15 @@ const Cell = (
     () => isHeader && !!filters && filters.length > 0,
     [isHeader, filters]
   );
+  const hasLazyLoad = isFunction(treeConfig?.loadChildren);
   const isShowExpand = useMemo(
-    () => !!row.children?.length && !isHeader && colIndex === 0,
-    [row.children, isHeader, colIndex]
+    () =>
+      (!!row.children?.length || hasLazyLoad) && !isHeader && colIndex === 0,
+    [row.children, hasLazyLoad, isHeader, colIndex]
   );
+  const isRowLoading = loadingKeys
+    ? loadingKeys.has(rowKeyValue ?? String(rowIndex))
+    : false;
   const isShowArrow = useMemo(
     () => !isHeader && !!showArrow && !isShowExpand,
     [isHeader, showArrow, isShowExpand]
@@ -425,8 +438,16 @@ const Cell = (
       />
     ) : null;
 
-  const renderExpand = () =>
-    isShowExpand ? (
+  const renderExpand = () => {
+    if (!isShowExpand) return null;
+    if (isRowLoading) {
+      return (
+        <View style={styles.expand_icon}>
+          <ActivityIndicator size="small" color="#1890ff" />
+        </View>
+      );
+    }
+    return (
       <View
         style={[
           styles.expand_icon,
@@ -435,7 +456,8 @@ const Cell = (
       >
         <View style={styles.expandTriangle} />
       </View>
-    ) : null;
+    );
+  };
 
   const renderFilterIcon = () => {
     if (!isShowFilter) return null;
