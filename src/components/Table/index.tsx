@@ -52,7 +52,9 @@ import { useRowDragSort } from '../../hooks/useRowDragSort';
 import { useTreeLazyLoad } from '../../hooks/useTreeLazyLoad';
 import { useEditableCell } from '../../hooks/useEditableCell';
 import { useValidation } from '../../hooks/useValidation';
+import { useContextMenu } from '../../hooks/useContextMenu';
 import Tooltip from '../Tooltip';
+import ContextMenu from '../ContextMenu';
 import Pagination from '../Pagination';
 
 if (Platform.OS === 'android') {
@@ -101,6 +103,7 @@ const Table = (
     dragSortConfig,
     editConfig,
     validationConfig,
+    contextMenuConfig,
   }: ITableProps,
   ref: any
 ) => {
@@ -202,6 +205,13 @@ const Table = (
     clearValidation,
   } = useValidation({ columns: _columns, data: paginatedData, rowKey });
 
+  // === Context Menu ===
+  const {
+    menuState: contextMenuState,
+    showContextMenu,
+    hideContextMenu,
+  } = useContextMenu();
+
   // === Expand State ===
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
 
@@ -300,6 +310,7 @@ const Table = (
       dragSortConfig,
       editConfig,
       validationConfig,
+      contextMenuConfig,
     }),
     [
       _columns,
@@ -328,6 +339,7 @@ const Table = (
       dragSortConfig,
       editConfig,
       validationConfig,
+      contextMenuConfig,
     ]
   );
 
@@ -373,6 +385,8 @@ const Table = (
       editValues,
       setEditValue,
       validationErrors,
+      showContextMenu,
+      hideContextMenu,
     }),
     [
       sortState,
@@ -414,6 +428,8 @@ const Table = (
       editValues,
       setEditValue,
       validationErrors,
+      showContextMenu,
+      hideContextMenu,
     ]
   );
 
@@ -820,6 +836,11 @@ const Table = (
           )}
           {renderLoading()}
           <Tooltip state={tooltipState} onClose={hideTooltip} />
+          <ContextMenu
+            menuState={contextMenuState}
+            config={contextMenuConfig}
+            onClose={hideContextMenu}
+          />
         </View>
       </TableStateContext.Provider>
     </TableStaticContext.Provider>

@@ -68,6 +68,7 @@ const Cell = (
     treeConfig,
     editConfig,
     validationConfig,
+    contextMenuConfig,
   } = useTableStatic();
   const {
     sortState,
@@ -89,6 +90,7 @@ const Cell = (
     moveDrag,
     endDrag,
     loadingKeys,
+    showContextMenu,
     editingCell,
     setEditingCell,
     editValues,
@@ -288,7 +290,7 @@ const Cell = (
   ]);
 
   // === Tooltip long-press handler ===
-  const _onLongPress = useCallback(() => {
+  const _onTooltipLongPress = useCallback(() => {
     if (!effectiveEllipsis || !showTooltip) return;
     const textVal = isArray(val) ? val.join(', ') : String(val ?? '');
     if (!textVal) return;
@@ -305,6 +307,23 @@ const Cell = (
       }
     );
   }, [effectiveEllipsis, showTooltip, val]);
+
+  // === Context menu long-press handler ===
+  const _onContextMenu = useCallback(() => {
+    if (!contextMenuConfig || !showContextMenu || isHeader) return;
+    cellRef.current?.measure(
+      (
+        _fx: number,
+        _fy: number,
+        _w: number,
+        _h: number,
+        px: number,
+        py: number
+      ) => {
+        showContextMenu({ row, rowIndex, x: px, y: py + _h, column: col });
+      }
+    );
+  }, [contextMenuConfig, showContextMenu, isHeader, row, rowIndex, col]);
 
   // === Filter handlers ===
   const openFilter = useCallback(() => {
@@ -615,6 +634,24 @@ const Cell = (
 
   const hasTooltip = !!effectiveEllipsis && !!showTooltip;
   const tooltipTrigger = effectiveEllipsis?.trigger ?? 'longPress';
+  const hasContextMenu = !!contextMenuConfig && !isHeader;
+
+  // Determine which long-press handler to use:
+  // 1. If tooltip is configured with longPress trigger → tooltip takes priority
+  // 2. Else if contextMenuConfig exists → context menu
+  // 3. Else → undefined
+  const _onLongPress = useMemo(() => {
+    if (hasTooltip && tooltipTrigger === 'longPress')
+      return _onTooltipLongPress;
+    if (hasContextMenu) return _onContextMenu;
+    return undefined;
+  }, [
+    hasTooltip,
+    tooltipTrigger,
+    _onTooltipLongPress,
+    hasContextMenu,
+    _onContextMenu,
+  ]);
 
   // === Inline edit mode: render EditCell instead of normal content ===
   if (isEditing) {
@@ -639,11 +676,7 @@ const Cell = (
         ref={cellRef}
         style={[styles.content, style, touchStyle]}
         onPress={_onPress}
-        onLongPress={
-          hasTooltip && tooltipTrigger === 'longPress'
-            ? _onLongPress
-            : undefined
-        }
+        onLongPress={_onLongPress}
         disabled={
           !onPress &&
           !isShowSort &&
@@ -651,6 +684,7 @@ const Cell = (
           !isCheckboxType &&
           !isRadioType &&
           !hasTooltip &&
+          !hasContextMenu &&
           !(editConfig?.trigger === 'click' && col.editable)
         }
       >
