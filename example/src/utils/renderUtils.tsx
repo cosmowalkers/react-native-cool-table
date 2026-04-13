@@ -1,7 +1,19 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import type { ITableColumnParams } from 'react-native-cool-table';
-import { colors } from '../styles/commonStyles';
+
+// ===== Default render-safe colors =====
+const defaultColors = {
+  primary: '#6366F1',
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  text: '#1A1D2E',
+  textSecondary: '#5C6078',
+  textLight: '#9CA3B8',
+};
+
+export type TRenderColors = typeof defaultColors;
 
 // ===== 头像 =====
 const avatarColors = [
@@ -28,187 +40,240 @@ export const renderInitialsAvatar = ({ val }: ITableColumnParams) => {
   );
 };
 
-// ===== 金额 =====
-export const renderPrice = ({ val }: ITableColumnParams) => {
-  const numVal = val as unknown as number;
-  return <Text style={styles.priceText}>¥{numVal?.toLocaleString()}</Text>;
-};
+// ===== 工厂函数：创建带主题色的 render 函数 =====
+export function createThemedRenderUtils(c: Partial<TRenderColors> = {}) {
+  const colors = { ...defaultColors, ...c };
 
-export const renderSignedAmount = ({ val }: ITableColumnParams) => {
-  const numVal = val as unknown as number;
-  const isPositive = numVal >= 0;
-  const color = isPositive ? colors.success : colors.error;
-  const prefix = isPositive ? '+' : '';
-  return (
-    <Text style={[styles.amountText, { color }]}>
-      {prefix}¥{Math.abs(numVal).toLocaleString()}
-    </Text>
-  );
-};
-
-// ===== 状态徽章（浅底色+彩色文字）=====
-export const renderStatusBadge = (
-  { val }: ITableColumnParams,
-  statusConfig?: Record<
-    string,
-    { color: string; bgColor?: string; text?: string }
-  >
-) => {
-  const defaultConfig: Record<
-    string,
-    { color: string; bgColor?: string; text?: string }
-  > = {
-    在职: { color: '#52c41a', bgColor: '#f6ffed' },
-    试用期: { color: '#fa8c16', bgColor: '#fff7e6' },
-    离职: { color: '#ff4d4f', bgColor: '#fff1f0' },
-    online: { color: '#52c41a', bgColor: '#f6ffed', text: '在线' },
-    offline: { color: '#999', bgColor: '#f5f5f5', text: '离线' },
-    busy: { color: '#fa8c16', bgColor: '#fff7e6', text: '忙碌' },
-  };
-
-  const config = statusConfig ?? defaultConfig;
-  const statusInfo = config[val as string] ?? {
-    color: '#999',
-    bgColor: '#f5f5f5',
-  };
-
-  return (
-    <View
-      style={[
-        styles.statusBadge,
-        { backgroundColor: statusInfo.bgColor ?? '#f5f5f5' },
-      ]}
-    >
-      <Text style={[styles.statusBadgeText, { color: statusInfo.color }]}>
-        {statusInfo.text ?? (val as string)}
-      </Text>
-    </View>
-  );
-};
-
-// ===== 进度条 =====
-export const renderProgress = ({ val }: ITableColumnParams) => {
-  const numVal = val as unknown as number;
-  return (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            {
-              width: `${numVal}%`,
-              backgroundColor: numVal === 100 ? colors.success : colors.primary,
-            },
-          ]}
-        />
-      </View>
-      <Text style={styles.progressText}>{numVal}%</Text>
-    </View>
-  );
-};
-
-// ===== 积分进度条 =====
-export const renderPointsProgress = ({ row }: ITableColumnParams) => {
-  const points = row.points as number;
-  const max = row.maxPoints as number;
-  const pct = Math.min(100, Math.round((points / max) * 100));
-  return (
-    <View style={styles.progressContainer}>
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${pct}%`, backgroundColor: '#faad14' },
-          ]}
-        />
-      </View>
-      <Text style={styles.progressText}>{points.toLocaleString()}</Text>
-    </View>
-  );
-};
-
-// ===== 优先级 =====
-export const renderPriority = (
-  { val, row }: ITableColumnParams,
-  onPress?: (id: any, priority: string) => void
-) => {
-  const strVal = val as string;
-  const priorityConfig: Record<string, { color: string; text: string }> = {
-    high: { color: colors.error, text: '高' },
-    medium: { color: colors.warning, text: '中' },
-    low: { color: colors.success, text: '低' },
-  };
-  const config = priorityConfig[strVal] ?? { color: '#999', text: strVal };
-
-  const content = (
-    <View style={styles.priorityContainer}>
-      <View style={[styles.priorityDot, { backgroundColor: config.color }]} />
-      <Text style={[styles.priorityText, { color: config.color }]}>
-        {config.text}
-      </Text>
-    </View>
-  );
-
-  if (onPress) {
+  const renderPrice = ({ val }: ITableColumnParams) => {
+    const numVal = val as unknown as number;
     return (
-      <TouchableOpacity onPress={() => onPress(row.id, strVal)}>
-        {content}
-      </TouchableOpacity>
-    );
-  }
-  return content;
-};
-
-// ===== 操作按钮 =====
-export const renderActionButtons = (
-  { row }: ITableColumnParams,
-  actions: Array<{
-    text: string;
-    onPress: (row: any) => void;
-    style?: any;
-    textStyle?: any;
-  }>
-) => (
-  <View style={styles.actionsContainer}>
-    {actions.map((action, index) => (
-      <TouchableOpacity
-        key={index}
-        style={[styles.actionButton, action.style]}
-        onPress={() => action.onPress(row)}
+      <Text
+        style={{
+          fontSize: 14,
+          fontWeight: '600',
+          color: colors.text,
+          textAlign: 'right',
+        }}
       >
-        <Text style={[styles.actionButtonText, action.textStyle]}>
-          {action.text}
-        </Text>
-      </TouchableOpacity>
-    ))}
-  </View>
-);
+        ¥{numVal?.toLocaleString()}
+      </Text>
+    );
+  };
 
-// ===== 标签 =====
-export const renderTags = ({ val }: ITableColumnParams, maxShow = 2) => {
-  if (!Array.isArray(val)) return null;
-  const tags = val as string[];
-  return (
-    <View style={styles.tagsContainer}>
-      {tags.slice(0, maxShow).map((tag, index) => (
-        <View key={index} style={styles.tag}>
-          <Text style={styles.tagText}>{tag}</Text>
+  const renderSignedAmount = ({ val }: ITableColumnParams) => {
+    const numVal = val as unknown as number;
+    const isPositive = numVal >= 0;
+    const color = isPositive ? colors.success : colors.error;
+    const prefix = isPositive ? '+' : '';
+    return (
+      <Text
+        style={{ fontSize: 14, fontWeight: '600', color, textAlign: 'right' }}
+      >
+        {prefix}¥{Math.abs(numVal).toLocaleString()}
+      </Text>
+    );
+  };
+
+  const renderStatusBadge = (
+    { val }: ITableColumnParams,
+    statusConfig?: Record<
+      string,
+      { color: string; bgColor?: string; text?: string }
+    >
+  ) => {
+    const config = statusConfig ?? {
+      在职: { color: '#52c41a', bgColor: 'rgba(82, 196, 26, 0.15)' },
+      试用期: { color: '#fa8c16', bgColor: 'rgba(250, 140, 22, 0.15)' },
+      离职: { color: '#ff4d4f', bgColor: 'rgba(255, 77, 79, 0.15)' },
+      online: {
+        color: '#52c41a',
+        bgColor: 'rgba(82, 196, 26, 0.15)',
+        text: '在线',
+      },
+      offline: {
+        color: '#999',
+        bgColor: 'rgba(153, 153, 153, 0.15)',
+        text: '离线',
+      },
+      busy: {
+        color: '#fa8c16',
+        bgColor: 'rgba(250, 140, 22, 0.15)',
+        text: '忙碌',
+      },
+    };
+    const statusInfo = config[val as string] ?? {
+      color: '#999',
+      bgColor: 'rgba(153, 153, 153, 0.15)',
+    };
+    return (
+      <View
+        style={[
+          styles.statusBadge,
+          {
+            backgroundColor: statusInfo.bgColor ?? 'rgba(153, 153, 153, 0.15)',
+          },
+        ]}
+      >
+        <Text style={[styles.statusBadgeText, { color: statusInfo.color }]}>
+          {statusInfo.text ?? (val as string)}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderProgress = ({ val }: ITableColumnParams) => {
+    const numVal = val as unknown as number;
+    return (
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                width: `${numVal}%`,
+                backgroundColor:
+                  numVal === 100 ? colors.success : colors.primary,
+              },
+            ]}
+          />
         </View>
+        <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+          {numVal}%
+        </Text>
+      </View>
+    );
+  };
+
+  const renderPointsProgress = ({ row }: ITableColumnParams) => {
+    const points = row.points as number;
+    const max = row.maxPoints as number;
+    const pct = Math.min(100, Math.round((points / max) * 100));
+    return (
+      <View style={styles.progressContainer}>
+        <View style={styles.progressBar}>
+          <View
+            style={[
+              styles.progressFill,
+              { width: `${pct}%`, backgroundColor: '#faad14' },
+            ]}
+          />
+        </View>
+        <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+          {points.toLocaleString()}
+        </Text>
+      </View>
+    );
+  };
+
+  const renderPriority = (
+    { val, row }: ITableColumnParams,
+    onPress?: (id: any, priority: string) => void
+  ) => {
+    const strVal = val as string;
+    const priorityConfig: Record<string, { color: string; text: string }> = {
+      high: { color: colors.error, text: '高' },
+      medium: { color: colors.warning, text: '中' },
+      low: { color: colors.success, text: '低' },
+    };
+    const config = priorityConfig[strVal] ?? { color: '#999', text: strVal };
+    const content = (
+      <View style={styles.priorityContainer}>
+        <View style={[styles.priorityDot, { backgroundColor: config.color }]} />
+        <Text style={[styles.priorityText, { color: config.color }]}>
+          {config.text}
+        </Text>
+      </View>
+    );
+    if (onPress) {
+      return (
+        <TouchableOpacity onPress={() => onPress(row.id, strVal)}>
+          {content}
+        </TouchableOpacity>
+      );
+    }
+    return content;
+  };
+
+  const renderActionButtons = (
+    { row }: ITableColumnParams,
+    actions: Array<{
+      text: string;
+      onPress: (row: any) => void;
+      style?: any;
+      textStyle?: any;
+    }>
+  ) => (
+    <View style={styles.actionsContainer}>
+      {actions.map((action, index) => (
+        <TouchableOpacity
+          key={index}
+          style={[
+            styles.actionButton,
+            { backgroundColor: colors.primary },
+            action.style,
+          ]}
+          onPress={() => action.onPress(row)}
+        >
+          <Text style={[styles.actionButtonText, action.textStyle]}>
+            {action.text}
+          </Text>
+        </TouchableOpacity>
       ))}
-      {tags.length > maxShow && (
-        <Text style={styles.moreTagsText}>+{tags.length - maxShow}</Text>
-      )}
     </View>
   );
-};
 
-// ===== 库存数量 =====
-export const renderStock = ({ val }: ITableColumnParams) => {
-  const numVal = val as unknown as number;
-  const color =
-    numVal === 0 ? colors.error : numVal < 50 ? colors.warning : colors.text;
-  return <Text style={[styles.stockText, { color }]}>{numVal}</Text>;
-};
+  const renderTags = ({ val }: ITableColumnParams, maxShow = 2) => {
+    if (!Array.isArray(val)) return null;
+    const tags = val as string[];
+    return (
+      <View style={styles.tagsContainer}>
+        {tags.slice(0, maxShow).map((tag, index) => (
+          <View key={index} style={styles.tag}>
+            <Text style={[styles.tagText, { color: colors.primary }]}>
+              {tag}
+            </Text>
+          </View>
+        ))}
+        {tags.length > maxShow && (
+          <Text style={[styles.moreTagsText, { color: colors.textLight }]}>
+            +{tags.length - maxShow}
+          </Text>
+        )}
+      </View>
+    );
+  };
+
+  const renderStock = ({ val }: ITableColumnParams) => {
+    const numVal = val as unknown as number;
+    const color =
+      numVal === 0 ? colors.error : numVal < 50 ? colors.warning : colors.text;
+    return <Text style={[styles.stockText, { color }]}>{numVal}</Text>;
+  };
+
+  return {
+    renderPrice,
+    renderSignedAmount,
+    renderStatusBadge,
+    renderProgress,
+    renderPointsProgress,
+    renderPriority,
+    renderActionButtons,
+    renderTags,
+    renderStock,
+  };
+}
+
+// ===== 向后兼容：使用默认颜色的导出 =====
+const defaults = createThemedRenderUtils();
+export const renderPrice = defaults.renderPrice;
+export const renderSignedAmount = defaults.renderSignedAmount;
+export const renderStatusBadge = defaults.renderStatusBadge;
+export const renderProgress = defaults.renderProgress;
+export const renderPointsProgress = defaults.renderPointsProgress;
+export const renderPriority = defaults.renderPriority;
+export const renderActionButtons = defaults.renderActionButtons;
+export const renderTags = defaults.renderTags;
+export const renderStock = defaults.renderStock;
 
 const styles = StyleSheet.create({
   initialsAvatar: {
@@ -223,17 +288,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     fontWeight: '600',
-  },
-  priceText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    textAlign: 'right',
-  },
-  amountText: {
-    fontSize: 14,
-    fontWeight: '600',
-    textAlign: 'right',
   },
   statusBadge: {
     paddingHorizontal: 8,
@@ -252,7 +306,7 @@ const styles = StyleSheet.create({
   progressBar: {
     width: '100%',
     height: 6,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: 'rgba(150, 150, 150, 0.2)',
     borderRadius: 3,
     marginBottom: 4,
   },
@@ -262,7 +316,6 @@ const styles = StyleSheet.create({
   },
   progressText: {
     fontSize: 10,
-    color: colors.textSecondary,
     fontWeight: '500',
   },
   priorityContainer: {
@@ -286,7 +339,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   actionButton: {
-    backgroundColor: colors.primary,
     paddingHorizontal: 10,
     paddingVertical: 8,
     borderRadius: 4,
@@ -304,7 +356,7 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
   },
   tag: {
-    backgroundColor: '#e6f7ff',
+    backgroundColor: 'rgba(99, 102, 241, 0.12)',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -313,12 +365,10 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontSize: 10,
-    color: colors.primary,
     fontWeight: '500',
   },
   moreTagsText: {
     fontSize: 10,
-    color: '#999',
     fontStyle: 'italic',
   },
   stockText: {

@@ -6,6 +6,7 @@ import {
   LayoutAnimation,
   ScrollView,
   ActivityIndicator,
+  StyleSheet,
 } from 'react-native';
 import type { ViewStyle } from 'react-native';
 import type { ITableRowProps, TItem, ITableColumn } from '../../types';
@@ -39,6 +40,7 @@ const Row = (
     contentWidth,
     treeConfig,
     rowStyle,
+    cellStyle: tableCellStyle,
     stripe,
     stripeColor,
     border,
@@ -260,6 +262,11 @@ const Row = (
           : styles.justify_center,
         { paddingLeft: isFirst ? 0 : 16, paddingRight: isLast ? 0 : 16 },
       ];
+      // Apply table-level cellStyle (e.g. for dark theme background override)
+      if (tableCellStyle) {
+        const flatCellStyle = StyleSheet.flatten(tableCellStyle);
+        if (flatCellStyle) _cellStyle.push(flatCellStyle);
+      }
       // === Cell Merge: compute merged width for colspan > 1 ===
       const spanResult =
         !isHeader && getCellSpan ? getCellSpan(rowIndex, colIndex) : null;
@@ -372,6 +379,7 @@ const Row = (
     columnWidths,
     getCellSpan,
     isCellVisible,
+    tableCellStyle,
   ]);
 
   const renderSeparator = () => {

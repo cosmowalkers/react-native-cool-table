@@ -4,30 +4,40 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateSizeChart } from '../utils/dataUtils';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const sizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'] as const;
 
 const FixedColumnDemo: React.FC = () => {
+  const { theme } = useTheme();
   const data = useMemo(() => generateSizeChart(8), []);
 
-  const renderSizePrice = useCallback((params: { val: unknown }) => {
-    const val = params.val as number;
-    if (val === 0) {
+  const renderSizePrice = useCallback(
+    (params: { val: unknown }) => {
+      const val = params.val as number;
+      if (val === 0) {
+        return (
+          <Text
+            style={{
+              fontSize: 13,
+              color: theme.colors.textMuted,
+              textAlign: 'right',
+            }}
+          >
+            —
+          </Text>
+        );
+      }
       return (
         <Text
-          style={{ fontSize: 13, color: colors.textLight, textAlign: 'right' }}
+          style={{ fontSize: 13, color: theme.colors.text, textAlign: 'right' }}
         >
-          —
+          ¥{val}
         </Text>
       );
-    }
-    return (
-      <Text style={{ fontSize: 13, color: colors.text, textAlign: 'right' }}>
-        ¥{val}
-      </Text>
-    );
-  }, []);
+    },
+    [theme.colors]
+  );
 
   const columns: ITableColumn[] = useMemo(
     () => [

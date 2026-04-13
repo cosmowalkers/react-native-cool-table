@@ -3,7 +3,7 @@ import { View, TextInput, StyleSheet } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   { id: '1', name: 'iPhone 15 Pro', brand: 'Apple', os: 'iOS 17' },
@@ -21,6 +21,8 @@ const COLUMNS: ITableColumn[] = [
 ];
 
 const SearchDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
   const [keyword, setKeyword] = useState('');
 
   const searchConfig = useMemo(
@@ -28,13 +30,30 @@ const SearchDemo: React.FC = () => {
     [keyword]
   );
 
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        input: {
+          height: 40,
+          borderWidth: 1,
+          borderColor: colors.border,
+          borderRadius: 8,
+          paddingHorizontal: 12,
+          fontSize: 14,
+          color: colors.text,
+          backgroundColor: colors.surface,
+        },
+      }),
+    [colors]
+  );
+
   return (
     <DemoLayout title="搜索高亮" description="输入关键词高亮匹配的单元格文本">
       <View style={styles.searchBar}>
         <TextInput
-          style={styles.input}
+          style={dynamicStyles.input}
           placeholder="输入关键词搜索..."
-          placeholderTextColor="#bbb"
+          placeholderTextColor={colors.textMuted}
           value={keyword}
           onChangeText={setKeyword}
           clearButtonMode="while-editing"
@@ -44,6 +63,7 @@ const SearchDemo: React.FC = () => {
         data={DATA}
         columns={COLUMNS}
         rowKey="id"
+        flex
         searchConfig={searchConfig}
       />
     </DemoLayout>
@@ -55,16 +75,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 4,
-  },
-  input: {
-    height: 40,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: colors.text,
-    backgroundColor: '#fff',
   },
 });
 

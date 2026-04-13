@@ -4,40 +4,51 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateAfterSales } from '../utils/dataUtils';
-import { renderStatusBadge, renderActionButtons } from '../utils/renderUtils';
+import { createThemedRenderUtils } from '../utils/renderUtils';
+import { useTheme } from '../context/ThemeContext';
 
 const afterSaleStatusConfig = {
-  待处理: { color: '#fa8c16', bgColor: '#fff7e6' },
-  处理中: { color: '#1890ff', bgColor: '#e6f7ff' },
-  已退款: { color: '#52c41a', bgColor: '#f6ffed' },
-  已换货: { color: '#13c2c2', bgColor: '#e6fffb' },
-  已关闭: { color: '#999', bgColor: '#f5f5f5' },
+  待处理: { color: '#fa8c16', bgColor: 'rgba(250, 140, 22, 0.15)' },
+  处理中: { color: '#1890ff', bgColor: 'rgba(24, 144, 255, 0.15)' },
+  已退款: { color: '#52c41a', bgColor: 'rgba(82, 196, 26, 0.15)' },
+  已换货: { color: '#13c2c2', bgColor: 'rgba(19, 194, 194, 0.15)' },
+  已关闭: { color: '#999', bgColor: 'rgba(153, 153, 153, 0.15)' },
 };
 
 const RightFixedDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+  const themedRenders = useMemo(
+    () => createThemedRenderUtils(colors),
+    [colors]
+  );
   const data = useMemo(() => generateAfterSales(12), []);
 
   const renderAfterSaleStatus = useCallback(
-    (params: any) => renderStatusBadge(params, afterSaleStatusConfig),
-    []
+    (params: any) =>
+      themedRenders.renderStatusBadge(params, afterSaleStatusConfig),
+    [themedRenders]
   );
 
-  const renderActions = useCallback((params: any) => {
-    const actions = [
-      {
-        text: '处理',
-        onPress: (row: any) =>
-          Alert.alert('处理工单', `工单号: ${row.id}\n商品: ${row.product}`),
-      },
-      {
-        text: '关闭',
-        onPress: (row: any) =>
-          Alert.alert('关闭工单', `确认关闭工单 ${row.id}?`),
-        style: { backgroundColor: '#999' },
-      },
-    ];
-    return renderActionButtons(params, actions);
-  }, []);
+  const renderActions = useCallback(
+    (params: any) => {
+      const actions = [
+        {
+          text: '处理',
+          onPress: (row: any) =>
+            Alert.alert('处理工单', `工单号: ${row.id}\n商品: ${row.product}`),
+        },
+        {
+          text: '关闭',
+          onPress: (row: any) =>
+            Alert.alert('关闭工单', `确认关闭工单 ${row.id}?`),
+          style: { backgroundColor: colors.textMuted },
+        },
+      ];
+      return themedRenders.renderActionButtons(params, actions);
+    },
+    [themedRenders, colors]
+  );
 
   const columns: ITableColumn[] = useMemo(
     () => [

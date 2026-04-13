@@ -4,10 +4,83 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateCartItems } from '../utils/dataUtils';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const InteractiveDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
   const [data, setData] = useState(() => generateCartItems(6));
+
+  const themedStyles = useMemo(
+    () => ({
+      productName: {
+        fontSize: 14,
+        fontWeight: '500' as const,
+        color: colors.text,
+        marginBottom: 2,
+      },
+      productSpec: {
+        fontSize: 12,
+        color: colors.textMuted,
+      },
+      priceText: {
+        fontSize: 14,
+        color: colors.text,
+        textAlign: 'right' as const,
+      },
+      quantityButton: {
+        width: 26,
+        height: 26,
+        borderRadius: 4,
+        backgroundColor: colors.border,
+        alignItems: 'center' as const,
+        justifyContent: 'center' as const,
+      },
+      quantityButtonText: {
+        fontSize: 16,
+        fontWeight: '600' as const,
+        color: colors.text,
+      },
+      quantityValue: {
+        fontSize: 14,
+        fontWeight: '500' as const,
+        color: colors.text,
+        marginHorizontal: 10,
+        minWidth: 20,
+        textAlign: 'center' as const,
+      },
+      subtotalText: {
+        fontSize: 14,
+        fontWeight: 'bold' as const,
+        color: colors.error,
+        textAlign: 'right' as const,
+      },
+      deleteText: {
+        fontSize: 13,
+        color: colors.error,
+        fontWeight: '500' as const,
+      },
+      summaryBar: {
+        marginTop: 12,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        backgroundColor: colors.surfaceElevated,
+        borderRadius: 6,
+        alignItems: 'flex-end' as const,
+      },
+      summaryLabel: {
+        fontSize: 15,
+        color: colors.text,
+        fontWeight: '500' as const,
+      },
+      summaryTotal: {
+        fontSize: 18,
+        fontWeight: 'bold' as const,
+        color: colors.error,
+      },
+    }),
+    [colors]
+  );
 
   const handleQuantityChange = useCallback((itemId: number, delta: number) => {
     setData((prev) =>
@@ -23,28 +96,34 @@ const InteractiveDemo: React.FC = () => {
     setData((prev) => prev.filter((item) => item.id !== itemId));
   }, []);
 
-  const renderProduct = useCallback((params: any) => {
-    const { row } = params;
-    return (
-      <View style={styles.productInfo}>
-        <Text style={styles.productName} numberOfLines={1}>
-          {row.name}
-        </Text>
-        <Text style={styles.productSpec} numberOfLines={1}>
-          {row.spec}
-        </Text>
-      </View>
-    );
-  }, []);
+  const renderProduct = useCallback(
+    (params: any) => {
+      const { row } = params;
+      return (
+        <View style={styles.productInfo}>
+          <Text style={themedStyles.productName} numberOfLines={1}>
+            {row.name}
+          </Text>
+          <Text style={themedStyles.productSpec} numberOfLines={1}>
+            {row.spec}
+          </Text>
+        </View>
+      );
+    },
+    [themedStyles]
+  );
 
-  const renderUnitPrice = useCallback((params: any) => {
-    const { row } = params;
-    return (
-      <Text style={styles.priceText}>
-        ¥{(row.price as number).toLocaleString()}
-      </Text>
-    );
-  }, []);
+  const renderUnitPrice = useCallback(
+    (params: any) => {
+      const { row } = params;
+      return (
+        <Text style={themedStyles.priceText}>
+          ¥{(row.price as number).toLocaleString()}
+        </Text>
+      );
+    },
+    [themedStyles]
+  );
 
   const renderQuantity = useCallback(
     (params: any) => {
@@ -52,42 +131,47 @@ const InteractiveDemo: React.FC = () => {
       return (
         <View style={styles.quantityRow}>
           <TouchableOpacity
-            style={styles.quantityButton}
+            style={themedStyles.quantityButton}
             onPress={() => handleQuantityChange(row.id, -1)}
           >
-            <Text style={styles.quantityButtonText}>-</Text>
+            <Text style={themedStyles.quantityButtonText}>-</Text>
           </TouchableOpacity>
-          <Text style={styles.quantityValue}>{row.quantity}</Text>
+          <Text style={themedStyles.quantityValue}>{row.quantity}</Text>
           <TouchableOpacity
-            style={styles.quantityButton}
+            style={themedStyles.quantityButton}
             onPress={() => handleQuantityChange(row.id, 1)}
           >
-            <Text style={styles.quantityButtonText}>+</Text>
+            <Text style={themedStyles.quantityButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       );
     },
-    [handleQuantityChange]
+    [handleQuantityChange, themedStyles]
   );
 
-  const renderSubtotal = useCallback((params: any) => {
-    const { row } = params;
-    const subtotal = (row.price as number) * (row.quantity as number);
-    return (
-      <Text style={styles.subtotalText}>¥{subtotal.toLocaleString()}</Text>
-    );
-  }, []);
+  const renderSubtotal = useCallback(
+    (params: any) => {
+      const { row } = params;
+      const subtotal = (row.price as number) * (row.quantity as number);
+      return (
+        <Text style={themedStyles.subtotalText}>
+          ¥{subtotal.toLocaleString()}
+        </Text>
+      );
+    },
+    [themedStyles]
+  );
 
   const renderDeleteAction = useCallback(
     (params: any) => {
       const { row } = params;
       return (
         <TouchableOpacity onPress={() => handleDelete(row.id)}>
-          <Text style={styles.deleteText}>删除</Text>
+          <Text style={themedStyles.deleteText}>删除</Text>
         </TouchableOpacity>
       );
     },
-    [handleDelete]
+    [handleDelete, themedStyles]
   );
 
   const columns: ITableColumn[] = useMemo(
@@ -143,9 +227,10 @@ const InteractiveDemo: React.FC = () => {
   );
 
   const summaryBar = (
-    <View style={styles.summaryBar}>
-      <Text style={styles.summaryLabel}>
-        合计: <Text style={styles.summaryTotal}>¥{total.toLocaleString()}</Text>
+    <View style={themedStyles.summaryBar}>
+      <Text style={themedStyles.summaryLabel}>
+        合计:{' '}
+        <Text style={themedStyles.summaryTotal}>¥{total.toLocaleString()}</Text>
       </Text>
     </View>
   );
@@ -171,75 +256,10 @@ const styles = StyleSheet.create({
     paddingLeft: 8,
     justifyContent: 'center',
   },
-  productName: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  productSpec: {
-    fontSize: 12,
-    color: colors.textLight,
-  },
-  priceText: {
-    fontSize: 14,
-    color: colors.text,
-    textAlign: 'right',
-  },
   quantityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  quantityButton: {
-    width: 26,
-    height: 26,
-    borderRadius: 4,
-    backgroundColor: '#f0f0f0',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  quantityButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  quantityValue: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: colors.text,
-    marginHorizontal: 10,
-    minWidth: 20,
-    textAlign: 'center',
-  },
-  subtotalText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.error,
-    textAlign: 'right',
-  },
-  deleteText: {
-    fontSize: 13,
-    color: colors.error,
-    fontWeight: '500',
-  },
-  summaryBar: {
-    marginTop: 12,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    backgroundColor: '#fffbe6',
-    borderRadius: 6,
-    alignItems: 'flex-end',
-  },
-  summaryLabel: {
-    fontSize: 15,
-    color: colors.text,
-    fontWeight: '500',
-  },
-  summaryTotal: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.error,
   },
 });
 

@@ -72,7 +72,7 @@ const GroupedHeaderDemo: React.FC = () => {
 
   return (
     <DemoLayout title="分组表头" description="多级分组表头，支持嵌套子列">
-      <TableContainer data={DATA} columns={columns} rowKey="id" />
+      <TableContainer data={DATA} columns={columns} rowKey="id" flex />
     </DemoLayout>
   );
 };

@@ -3,9 +3,24 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateProductList } from '../utils/dataUtils';
-import { renderPrice } from '../utils/renderUtils';
+import { createThemedRenderUtils } from '../utils/renderUtils';
+import { useTheme } from '../context/ThemeContext';
 
 const BasicTableDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const themedRenders = useMemo(
+    () =>
+      createThemedRenderUtils({
+        text: theme.colors.text,
+        textSecondary: theme.colors.textSecondary,
+        textLight: theme.colors.textMuted,
+        primary: theme.colors.primary,
+        success: theme.colors.success,
+        warning: theme.colors.warning,
+        error: theme.colors.error,
+      }),
+    [theme.colors]
+  );
   const data = useMemo(() => generateProductList(15), []);
 
   const columns: ITableColumn[] = useMemo(
@@ -27,7 +42,7 @@ const BasicTableDemo: React.FC = () => {
         title: '价格',
         width: 80,
         align: 'right',
-        render: renderPrice,
+        render: themedRenders.renderPrice,
       },
       {
         key: 'sales',
@@ -36,7 +51,7 @@ const BasicTableDemo: React.FC = () => {
         align: 'right',
       },
     ],
-    []
+    [themedRenders]
   );
 
   return (
@@ -48,6 +63,7 @@ const BasicTableDemo: React.FC = () => {
         data={data}
         columns={columns}
         keyExtractor={(item) => String(item.id)}
+        flex
       />
     </DemoLayout>
   );

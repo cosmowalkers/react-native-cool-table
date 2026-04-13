@@ -1,10 +1,17 @@
 export { default as BasicTableDemo } from './BasicTableDemo';
 export { default as SortableTableDemo } from './SortableTableDemo';
 export { default as ExpandableTableDemo } from './ExpandableTableDemo';
+export { default as EmptyStateDemo } from './EmptyStateDemo';
 export { default as FixedColumnDemo } from './FixedColumnDemo';
+export { default as RightFixedDemo } from './RightFixedDemo';
 export { default as CustomRenderDemo } from './CustomRenderDemo';
 export { default as InteractiveDemo } from './InteractiveDemo';
+export { default as ComprehensiveDemo } from './ComprehensiveDemo';
 export { default as PerformanceDemo } from './PerformanceDemo';
+export { default as MultiSortDemo } from './MultiSortDemo';
+export { default as CheckboxRadioDemo } from './CheckboxRadioDemo';
+export { default as FilterDemo } from './FilterDemo';
+export { default as StripeBorderDemo } from './StripeBorderDemo';
 export { default as ResizeDemo } from './ResizeDemo';
 export { default as GroupedHeaderDemo } from './GroupedHeaderDemo';
 export { default as CellMergeDemo } from './CellMergeDemo';

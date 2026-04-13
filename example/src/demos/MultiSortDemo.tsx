@@ -4,6 +4,7 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   {
@@ -81,15 +82,16 @@ const COLUMNS: ITableColumn[] = [
 ];
 
 const MultiSortDemo: React.FC = () => {
+  const { theme } = useTheme();
   const [sortInfo, setSortInfo] = useState('');
 
   const extraInfo = useMemo(
     () => (
-      <Text style={commonStyles.sortInfo}>
+      <Text style={[commonStyles.sortInfo, { color: theme.colors.primary }]}>
         {sortInfo || '点击表头排序，支持多列排序（优先级序号显示）'}
       </Text>
     ),
-    [sortInfo]
+    [sortInfo, theme.colors.primary]
   );
 
   return (

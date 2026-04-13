@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
-import { commonStyles } from '../styles/commonStyles';
+import React, { useMemo } from 'react';
+import { View, Text, ScrollView, StyleSheet } from 'react-native';
+import { useTheme } from '../context/ThemeContext';
 
 interface DemoLayoutProps {
   title: string;
@@ -17,11 +17,42 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({
   extraInfo,
   scrollable = false,
 }) => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          padding: 16,
+          backgroundColor: colors.surface,
+          borderBottomWidth: 1,
+          borderBottomColor: colors.border,
+        },
+        title: {
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: colors.text,
+          marginBottom: 8,
+        },
+        description: {
+          fontSize: 14,
+          color: colors.textSecondary,
+          lineHeight: 20,
+        },
+      }),
+    [colors]
+  );
+
   const content = (
     <>
-      <View style={commonStyles.header}>
-        <Text style={commonStyles.title}>{title}</Text>
-        <Text style={commonStyles.description}>{description}</Text>
+      <View style={dynamicStyles.header}>
+        <Text style={dynamicStyles.title}>{title}</Text>
+        <Text style={dynamicStyles.description}>{description}</Text>
         {extraInfo}
       </View>
       {children}
@@ -31,7 +62,7 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({
   if (scrollable) {
     return (
       <ScrollView
-        style={commonStyles.container}
+        style={dynamicStyles.container}
         showsVerticalScrollIndicator={false}
       >
         {content}
@@ -39,7 +70,7 @@ const DemoLayout: React.FC<DemoLayoutProps> = ({
     );
   }
 
-  return <View style={commonStyles.container}>{content}</View>;
+  return <View style={dynamicStyles.container}>{content}</View>;
 };
 
 export default DemoLayout;

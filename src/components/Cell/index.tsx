@@ -69,6 +69,8 @@ const Cell = (
     editConfig,
     validationConfig,
     contextMenuConfig,
+    textColor: tableTextColor,
+    headerTextColor: tableHeaderTextColor,
   } = useTableStatic();
   const {
     sortState,
@@ -451,7 +453,9 @@ const Cell = (
         styles.text,
         {
           textAlign,
-          color: isHeader ? '#929AA6' : '#1F2733',
+          color: isHeader
+            ? tableHeaderTextColor ?? '#929AA6'
+            : tableTextColor ?? '#1F2733',
         },
         isHeader ? hTextStyle : textStyle,
         index >= 1 && styles.second_text,

@@ -32,6 +32,7 @@ const PaginationDemo: React.FC = () => {
         data={data}
         columns={columns}
         rowKey="id"
+        flex
         paginationConfig={{
           pageSize: 10,
           pageSizes: [5, 10, 20],

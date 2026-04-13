@@ -3,7 +3,7 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 
-const INITIAL_DATA = [
+const INITIAL_DATA: Record<string, unknown>[] = [
   { id: '1', rank: 1, name: 'React Native', stars: 11500 },
   { id: '2', rank: 2, name: 'Flutter', stars: 16200 },
   { id: '3', rank: 3, name: 'SwiftUI', stars: 8700 },
@@ -20,12 +20,13 @@ const COLUMNS: ITableColumn[] = [
 ];
 
 const DragSortDemo: React.FC = () => {
-  const [data, setData] = useState<Record<string, unknown>[]>(INITIAL_DATA);
+  const [data, setData] = useState(INITIAL_DATA);
 
   return (
     <DemoLayout
       title="行拖拽排序"
       description="拖拽行排序，长按拖拽手柄上下移动"
+      scrollable
     >
       <TableContainer
         data={data}
@@ -33,7 +34,7 @@ const DragSortDemo: React.FC = () => {
         rowKey="id"
         dragSortConfig={{
           onDragEnd: (params) => {
-            setData(params.data);
+            setData(params.data as Record<string, unknown>[]);
           },
         }}
       />

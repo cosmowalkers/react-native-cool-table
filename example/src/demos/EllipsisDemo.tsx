@@ -52,6 +52,7 @@ const EllipsisDemo: React.FC = () => {
         data={DATA}
         columns={columns}
         rowKey="id"
+        flex
         ellipsisConfig={{
           enabled: true,
           numberOfLines: 1,

@@ -69,6 +69,9 @@ const Table = (
     flatListProps,
     onPressRow,
     rowStyle,
+    cellStyle,
+    textColor,
+    headerTextColor,
     onSortChange,
     headerRowStyle,
     FooterComponent,
@@ -287,6 +290,9 @@ const Table = (
     contentWidth,
     treeConfig,
     rowStyle,
+    cellStyle,
+    textColor,
+    headerTextColor,
     onSortChange: _stableOnSortChange,
     sortConfig,
     filterConfig,
@@ -689,13 +695,16 @@ const Table = (
 
   const renderLoading = () => {
     if (!loading) return null;
+    const overlayStyle = loadingConfig?.overlayStyle;
     if (isFunction(loadingConfig?.render)) {
       return (
-        <View style={styles.loadingOverlay}>{loadingConfig!.render()}</View>
+        <View style={[styles.loadingOverlay, overlayStyle]}>
+          {loadingConfig!.render()}
+        </View>
       );
     }
     return (
-      <View style={styles.loadingOverlay}>
+      <View style={[styles.loadingOverlay, overlayStyle]}>
         <ActivityIndicator size="large" color="#1890ff" />
       </View>
     );

@@ -41,6 +41,9 @@ interface IStaticParams {
   contentWidth: number;
   treeConfig?: TExpandable;
   rowStyle?: StyleProp<ViewStyle>;
+  cellStyle?: StyleProp<ViewStyle>;
+  textColor?: string;
+  headerTextColor?: string;
   onSortChange?: ITableStaticContextValue['onSortChange'];
   sortConfig?: ISortConfig;
   filterConfig?: IFilterConfig;
@@ -144,6 +147,9 @@ export const useTableContextValues = (
       contentWidth: params.contentWidth,
       treeConfig: params.treeConfig,
       rowStyle: params.rowStyle,
+      cellStyle: params.cellStyle,
+      textColor: params.textColor,
+      headerTextColor: params.headerTextColor,
       onSortChange: params.onSortChange,
       sortConfig: params.sortConfig,
       filterConfig: params.filterConfig,
@@ -173,6 +179,9 @@ export const useTableContextValues = (
       params.contentWidth,
       params.treeConfig,
       params.rowStyle,
+      params.cellStyle,
+      params.textColor,
+      params.headerTextColor,
       params.onSortChange,
       params.sortConfig,
       params.filterConfig,

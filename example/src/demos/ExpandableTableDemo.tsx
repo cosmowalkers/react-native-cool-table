@@ -4,23 +4,86 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateOrderList } from '../utils/dataUtils';
-import { renderPrice, renderStatusBadge } from '../utils/renderUtils';
-import { colors } from '../styles/commonStyles';
+import { createThemedRenderUtils } from '../utils/renderUtils';
+import { useTheme } from '../context/ThemeContext';
 
 const orderStatusConfig: Record<string, { color: string; bgColor: string }> = {
-  待付款: { color: '#fa8c16', bgColor: '#fff7e6' },
-  待发货: { color: '#1890ff', bgColor: '#e6f7ff' },
-  运输中: { color: '#722ed1', bgColor: '#f9f0ff' },
-  已完成: { color: '#52c41a', bgColor: '#f6ffed' },
-  已取消: { color: '#999', bgColor: '#f5f5f5' },
+  待付款: { color: '#fa8c16', bgColor: 'rgba(250, 140, 22, 0.15)' },
+  待发货: { color: '#1890ff', bgColor: 'rgba(24, 144, 255, 0.15)' },
+  运输中: { color: '#722ed1', bgColor: 'rgba(114, 46, 209, 0.15)' },
+  已完成: { color: '#52c41a', bgColor: 'rgba(82, 196, 26, 0.15)' },
+  已取消: { color: '#999', bgColor: 'rgba(153, 153, 153, 0.15)' },
 };
 
 const ExpandableTableDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const themedRenders = useMemo(
+    () =>
+      createThemedRenderUtils({
+        text: theme.colors.text,
+        textSecondary: theme.colors.textSecondary,
+        textLight: theme.colors.textMuted,
+        primary: theme.colors.primary,
+        success: theme.colors.success,
+        warning: theme.colors.warning,
+        error: theme.colors.error,
+      }),
+    [theme.colors]
+  );
   const data = useMemo(() => generateOrderList(8), []);
 
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        expandContainer: {
+          padding: 12,
+          backgroundColor: theme.colors.background,
+        },
+        expandTitle: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: theme.colors.text,
+          marginBottom: 8,
+        },
+        itemCard: {
+          backgroundColor: theme.colors.surface,
+          padding: 10,
+          marginBottom: 6,
+          borderRadius: 6,
+          borderLeftWidth: 3,
+          borderLeftColor: theme.colors.primary,
+        },
+        itemName: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: theme.colors.text,
+          flex: 1,
+          marginRight: 8,
+        },
+        itemSubtotal: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: theme.colors.error,
+        },
+        itemSpec: {
+          fontSize: 12,
+          color: theme.colors.textSecondary,
+        },
+        itemQty: {
+          fontSize: 12,
+          color: theme.colors.textMuted,
+        },
+        emptyExpandText: {
+          color: theme.colors.textMuted,
+          fontSize: 14,
+        },
+      }),
+    [theme]
+  );
+
   const renderOrderStatus = useCallback(
-    (params: any) => renderStatusBadge(params, orderStatusConfig),
-    []
+    (params: any) => themedRenders.renderStatusBadge(params, orderStatusConfig),
+    [themedRenders]
   );
 
   const renderExpandContent = useCallback(
@@ -28,29 +91,29 @@ const ExpandableTableDemo: React.FC = () => {
       if (!children || children.length === 0) {
         return (
           <View style={styles.emptyExpand}>
-            <Text style={styles.emptyExpandText}>暂无商品明细</Text>
+            <Text style={dynamicStyles.emptyExpandText}>暂无商品明细</Text>
           </View>
         );
       }
 
       return (
-        <View style={styles.expandContainer}>
-          <Text style={styles.expandTitle}>
+        <View style={dynamicStyles.expandContainer}>
+          <Text style={dynamicStyles.expandTitle}>
             订单 {parentData.id} - 商品明细
           </Text>
           {children.map((item: any) => (
-            <View key={item.id} style={styles.itemCard}>
+            <View key={item.id} style={dynamicStyles.itemCard}>
               <View style={styles.itemHeader}>
-                <Text style={styles.itemName} numberOfLines={1}>
+                <Text style={dynamicStyles.itemName} numberOfLines={1}>
                   {item.name}
                 </Text>
-                <Text style={styles.itemSubtotal}>
+                <Text style={dynamicStyles.itemSubtotal}>
                   ¥{item.subtotal.toLocaleString()}
                 </Text>
               </View>
               <View style={styles.itemDetail}>
-                <Text style={styles.itemSpec}>{item.spec}</Text>
-                <Text style={styles.itemQty}>
+                <Text style={dynamicStyles.itemSpec}>{item.spec}</Text>
+                <Text style={dynamicStyles.itemQty}>
                   {item.quantity} x ¥{item.price}
                 </Text>
               </View>
@@ -59,7 +122,7 @@ const ExpandableTableDemo: React.FC = () => {
         </View>
       );
     },
-    []
+    [dynamicStyles]
   );
 
   const columns: ITableColumn[] = useMemo(
@@ -89,10 +152,10 @@ const ExpandableTableDemo: React.FC = () => {
         title: '金额',
         width: 90,
         align: 'right',
-        render: renderPrice,
+        render: themedRenders.renderPrice,
       },
     ],
-    [renderOrderStatus]
+    [renderOrderStatus, themedRenders]
   );
 
   const treeConfig = useMemo(
@@ -121,62 +184,20 @@ const ExpandableTableDemo: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  expandContainer: {
-    padding: 12,
-    backgroundColor: '#fafafa',
-  },
-  expandTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  itemCard: {
-    backgroundColor: colors.white,
-    padding: 10,
-    marginBottom: 6,
-    borderRadius: 6,
-    borderLeftWidth: 3,
-    borderLeftColor: colors.primary,
-  },
   itemHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 4,
   },
-  itemName: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-    marginRight: 8,
-  },
-  itemSubtotal: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.error,
-  },
   itemDetail: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  itemSpec: {
-    fontSize: 12,
-    color: colors.textSecondary,
-  },
-  itemQty: {
-    fontSize: 12,
-    color: colors.textLight,
-  },
   emptyExpand: {
     padding: 20,
     alignItems: 'center',
-  },
-  emptyExpandText: {
-    color: colors.textLight,
-    fontSize: 14,
   },
 });
 

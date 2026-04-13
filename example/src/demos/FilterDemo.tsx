@@ -4,6 +4,7 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   { id: '1', name: 'iPhone 15', category: '手机', price: 5999, status: '在售' },
@@ -76,15 +77,16 @@ const COLUMNS: ITableColumn[] = [
 ];
 
 const FilterDemo: React.FC = () => {
+  const { theme } = useTheme();
   const [filterInfo, setFilterInfo] = useState('');
 
   const extraInfo = useMemo(
     () => (
-      <Text style={commonStyles.sortInfo}>
+      <Text style={[commonStyles.sortInfo, { color: theme.colors.primary }]}>
         {filterInfo || '点击表头筛选图标进行筛选'}
       </Text>
     ),
-    [filterInfo]
+    [filterInfo, theme.colors.primary]
   );
 
   return (

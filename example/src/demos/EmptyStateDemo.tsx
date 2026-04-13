@@ -10,12 +10,72 @@ import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateSearchProducts } from '../utils/dataUtils';
-import { renderPrice, renderStock } from '../utils/renderUtils';
-import { colors } from '../styles/commonStyles';
+import { createThemedRenderUtils } from '../utils/renderUtils';
+import { useTheme } from '../context/ThemeContext';
 
 const EmptyStateDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+  const themedRenders = useMemo(
+    () => createThemedRenderUtils(colors),
+    [colors]
+  );
   const [keyword, setKeyword] = useState('');
   const fullData = useMemo(() => generateSearchProducts(20), []);
+
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        searchBar: {
+          padding: 12,
+          backgroundColor: theme.colors.surface,
+        },
+        searchInputWrapper: {
+          flexDirection: 'row',
+          alignItems: 'center',
+          backgroundColor: theme.colors.background,
+          borderRadius: 8,
+          borderWidth: 1,
+          borderColor: theme.colors.border,
+        },
+        searchInput: {
+          flex: 1,
+          height: 40,
+          paddingHorizontal: 12,
+          fontSize: 14,
+          color: theme.colors.text,
+        },
+        clearButtonText: {
+          fontSize: 14,
+          color: theme.colors.textMuted,
+          fontWeight: '600',
+        },
+        emptyTitle: {
+          fontSize: 18,
+          fontWeight: 'bold',
+          color: theme.colors.text,
+          marginBottom: 8,
+        },
+        emptyDesc: {
+          fontSize: 14,
+          color: theme.colors.textMuted,
+          textAlign: 'center',
+          marginBottom: 20,
+        },
+        emptyButton: {
+          backgroundColor: theme.colors.primary,
+          paddingHorizontal: 24,
+          paddingVertical: 10,
+          borderRadius: 20,
+        },
+        emptyButtonText: {
+          color: theme.colors.buttonText,
+          fontSize: 14,
+          fontWeight: '500',
+        },
+      }),
+    [theme]
+  );
 
   const filteredData = useMemo(() => {
     if (!keyword.trim()) {
@@ -33,16 +93,19 @@ const EmptyStateDemo: React.FC = () => {
     () => (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyIcon}>🔍</Text>
-        <Text style={styles.emptyTitle}>未找到相关商品</Text>
-        <Text style={styles.emptyDesc}>
+        <Text style={dynamicStyles.emptyTitle}>未找到相关商品</Text>
+        <Text style={dynamicStyles.emptyDesc}>
           没有匹配"{keyword}"的商品，请尝试其他关键词
         </Text>
-        <TouchableOpacity style={styles.emptyButton} onPress={clearSearch}>
-          <Text style={styles.emptyButtonText}>清除搜索</Text>
+        <TouchableOpacity
+          style={dynamicStyles.emptyButton}
+          onPress={clearSearch}
+        >
+          <Text style={dynamicStyles.emptyButtonText}>清除搜索</Text>
         </TouchableOpacity>
       </View>
     ),
-    [keyword, clearSearch]
+    [keyword, clearSearch, dynamicStyles]
   );
 
   const columns: ITableColumn[] = useMemo(
@@ -64,17 +127,17 @@ const EmptyStateDemo: React.FC = () => {
         title: '价格',
         width: 80,
         align: 'right',
-        render: renderPrice,
+        render: themedRenders.renderPrice,
       },
       {
         key: 'stock',
         title: '库存',
         width: 60,
         align: 'right',
-        render: renderStock,
+        render: themedRenders.renderStock,
       },
     ],
-    []
+    [themedRenders]
   );
 
   return (
@@ -82,18 +145,18 @@ const EmptyStateDemo: React.FC = () => {
       title="商品搜索"
       description="输入关键词搜索商品，无匹配结果时展示自定义空状态"
     >
-      <View style={styles.searchBar}>
-        <View style={styles.searchInputWrapper}>
+      <View style={dynamicStyles.searchBar}>
+        <View style={dynamicStyles.searchInputWrapper}>
           <TextInput
-            style={styles.searchInput}
+            style={dynamicStyles.searchInput}
             placeholder="搜索商品名称..."
-            placeholderTextColor={colors.textLight}
+            placeholderTextColor={theme.colors.textMuted}
             value={keyword}
             onChangeText={setKeyword}
           />
           {keyword.length > 0 && (
             <TouchableOpacity style={styles.clearButton} onPress={clearSearch}>
-              <Text style={styles.clearButtonText}>✕</Text>
+              <Text style={dynamicStyles.clearButtonText}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -110,36 +173,12 @@ const EmptyStateDemo: React.FC = () => {
 };
 
 const styles = StyleSheet.create({
-  searchBar: {
-    padding: 12,
-    backgroundColor: colors.white,
-  },
-  searchInputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  searchInput: {
-    flex: 1,
-    height: 40,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    color: colors.text,
-  },
   clearButton: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 4,
-  },
-  clearButtonText: {
-    fontSize: 14,
-    color: colors.textLight,
-    fontWeight: '600',
   },
   emptyContainer: {
     alignItems: 'center',
@@ -149,29 +188,6 @@ const styles = StyleSheet.create({
   emptyIcon: {
     fontSize: 48,
     marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  emptyDesc: {
-    fontSize: 14,
-    color: colors.textLight,
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  emptyButton: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
-    borderRadius: 20,
-  },
-  emptyButtonText: {
-    color: colors.white,
-    fontSize: 14,
-    fontWeight: '500',
   },
 });
 

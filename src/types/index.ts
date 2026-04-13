@@ -143,6 +143,8 @@ export interface ILoadingConfig {
   render?: () => ReactNode;
   /** loading 文字 */
   text?: string;
+  /** 遮罩层样式（覆盖默认白色半透明背景） */
+  overlayStyle?: StyleProp<ViewStyle>;
 }
 
 // ============================================================
@@ -198,6 +200,12 @@ export interface IIconProps {
 export interface ICommonTableProps {
   style?: StyleProp<ViewStyle>;
   rowStyle?: StyleProp<ViewStyle>;
+  /** 单元格样式（覆盖默认白色背景等） */
+  cellStyle?: StyleProp<ViewStyle>;
+  /** 单元格默认文字颜色 */
+  textColor?: string;
+  /** 表头文字颜色 */
+  headerTextColor?: string;
   onPressRow?: (params: { item: any; rowIndex: number }) => void;
   onSortChange?: (params: {
     key: string;
@@ -460,6 +468,9 @@ export interface ITableStaticContextValue {
   contentWidth: number;
   treeConfig?: TExpandable;
   rowStyle?: StyleProp<ViewStyle>;
+  cellStyle?: StyleProp<ViewStyle>;
+  textColor?: string;
+  headerTextColor?: string;
   onSortChange?: ICommonTableProps['onSortChange'];
   /** P0: 排序配置 */
   sortConfig?: ISortConfig;

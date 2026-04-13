@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import type { ITableColumn, TBorderType } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   { id: '1', name: 'iPhone 15', category: '手机', price: 5999, sales: 1200 },
@@ -30,9 +30,85 @@ const BORDER_OPTIONS: { label: string; value: TBorderType | undefined }[] = [
 ];
 
 const StripeBorderDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
   const [stripe, setStripe] = useState(true);
   const [border, setBorder] = useState<TBorderType | undefined>('full');
   const [loading, setLoading] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+    };
+  }, []);
+
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        toggle: {
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          borderRadius: 4,
+          borderWidth: 1,
+          borderColor: colors.border,
+          marginRight: 8,
+        },
+        toggleActive: {
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+        },
+        toggleText: {
+          fontSize: 13,
+          color: colors.textSecondary,
+        },
+        toggleTextActive: {
+          color: colors.buttonText,
+        },
+        label: {
+          fontSize: 13,
+          color: colors.textSecondary,
+          marginRight: 8,
+        },
+        borderBtn: {
+          paddingHorizontal: 12,
+          paddingVertical: 6,
+          borderRadius: 4,
+          borderWidth: 1,
+          borderColor: colors.border,
+          marginRight: 6,
+        },
+        borderBtnActive: {
+          backgroundColor: colors.primary,
+          borderColor: colors.primary,
+        },
+        borderBtnText: {
+          fontSize: 12,
+          color: colors.textSecondary,
+        },
+        borderBtnTextActive: {
+          color: colors.buttonText,
+        },
+      }),
+    [colors]
+  );
+
+  const footerConfig = useMemo(
+    () => ({
+      data: [
+        {
+          name: '合计',
+          category: '-',
+          price: DATA.reduce((s, r) => s + r.price, 0),
+          sales: DATA.reduce((s, r) => s + r.sales, 0),
+        },
+      ],
+      rowStyle: { backgroundColor: colors.headerBg, minHeight: 48 },
+    }),
+    [colors]
+  );
 
   return (
     <DemoLayout
@@ -42,42 +118,52 @@ const StripeBorderDemo: React.FC = () => {
     >
       <View style={styles.controls}>
         <TouchableOpacity
-          style={[styles.toggle, stripe && styles.toggleActive]}
+          style={[dynamicStyles.toggle, stripe && dynamicStyles.toggleActive]}
           onPress={() => setStripe((v) => !v)}
         >
-          <Text style={[styles.toggleText, stripe && styles.toggleTextActive]}>
+          <Text
+            style={[
+              dynamicStyles.toggleText,
+              stripe && dynamicStyles.toggleTextActive,
+            ]}
+          >
             {stripe ? '条纹 ON' : '条纹 OFF'}
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.toggle, loading && styles.toggleActive]}
+          style={[dynamicStyles.toggle, loading && dynamicStyles.toggleActive]}
           onPress={() => {
             setLoading(true);
-            setTimeout(() => setLoading(false), 2000);
+            timerRef.current = setTimeout(() => setLoading(false), 2000);
           }}
         >
-          <Text style={[styles.toggleText, loading && styles.toggleTextActive]}>
+          <Text
+            style={[
+              dynamicStyles.toggleText,
+              loading && dynamicStyles.toggleTextActive,
+            ]}
+          >
             Loading 2s
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.borderRow}>
-        <Text style={styles.label}>边框:</Text>
+        <Text style={dynamicStyles.label}>边框:</Text>
         {BORDER_OPTIONS.map((opt) => (
           <TouchableOpacity
             key={opt.label}
             style={[
-              styles.borderBtn,
-              border === opt.value && styles.borderBtnActive,
+              dynamicStyles.borderBtn,
+              border === opt.value && dynamicStyles.borderBtnActive,
             ]}
             onPress={() => setBorder(opt.value)}
           >
             <Text
               style={[
-                styles.borderBtnText,
-                border === opt.value && styles.borderBtnTextActive,
+                dynamicStyles.borderBtnText,
+                border === opt.value && dynamicStyles.borderBtnTextActive,
               ]}
             >
               {opt.label}
@@ -93,17 +179,7 @@ const StripeBorderDemo: React.FC = () => {
         stripe={stripe}
         border={border}
         loading={loading}
-        footerConfig={{
-          data: [
-            {
-              name: '合计',
-              category: '-',
-              price: DATA.reduce((s, r) => s + r.price, 0),
-              sales: DATA.reduce((s, r) => s + r.sales, 0),
-            },
-          ],
-          rowStyle: { backgroundColor: '#FAFAFA', minHeight: 48 },
-        }}
+        footerConfig={footerConfig}
       />
     </DemoLayout>
   );
@@ -115,54 +191,11 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 0,
   },
-  toggle: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginRight: 8,
-  },
-  toggleActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  toggleText: {
-    fontSize: 13,
-    color: '#666',
-  },
-  toggleTextActive: {
-    color: '#fff',
-  },
   borderRow: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
     paddingBottom: 0,
-  },
-  label: {
-    fontSize: 13,
-    color: '#666',
-    marginRight: 8,
-  },
-  borderBtn: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    marginRight: 6,
-  },
-  borderBtnActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
-  },
-  borderBtnText: {
-    fontSize: 12,
-    color: '#666',
-  },
-  borderBtnTextActive: {
-    color: '#fff',
   },
 });
 

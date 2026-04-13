@@ -1,9 +1,10 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
 import CoolTable from 'react-native-cool-table';
-import type { ITableColumn } from 'react-native-cool-table';
+import type { ITableColumn, ICoolTableRef } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
-import { commonStyles, colors } from '../styles/commonStyles';
+import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   { id: '1', name: 'iPhone 15', price: 5999, qty: 2 },
@@ -29,9 +30,59 @@ const RADIO_COLUMNS: ITableColumn[] = [
 ];
 
 const CheckboxRadioDemo: React.FC = () => {
-  const tableRef = useRef<any>(null);
+  const { theme } = useTheme();
+  const { colors } = theme;
+  const tableRef = useRef<ICoolTableRef>(
+    null
+  ) as React.MutableRefObject<ICoolTableRef>;
   const [selectedInfo, setSelectedInfo] = useState('未选择');
   const [radioInfo, setRadioInfo] = useState('未选择');
+
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        sectionTitle: {
+          fontSize: 16,
+          fontWeight: '600',
+          color: colors.text,
+          marginBottom: 8,
+        },
+        info: {
+          fontSize: 13,
+          color: colors.primary,
+          marginBottom: 8,
+        },
+        tableContainer: {
+          ...commonStyles.tableContainer,
+          backgroundColor: colors.surface,
+          shadowColor: colors.cardShadow,
+        },
+        table: {
+          backgroundColor: colors.surface,
+        },
+        row: {
+          ...commonStyles.row,
+          borderBottomColor: colors.rowBorder,
+        },
+        headerRow: {
+          ...commonStyles.headerRow,
+          backgroundColor: colors.headerBg,
+          borderBottomColor: colors.border,
+        },
+        btn: {
+          backgroundColor: colors.primary,
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          borderRadius: 4,
+          marginRight: 8,
+        },
+        btnText: {
+          color: colors.buttonText,
+          fontSize: 13,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <DemoLayout
@@ -41,17 +92,17 @@ const CheckboxRadioDemo: React.FC = () => {
     >
       {/* Checkbox */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Checkbox 多选</Text>
-        <Text style={styles.info}>{selectedInfo}</Text>
-        <View style={commonStyles.tableContainer}>
+        <Text style={dynamicStyles.sectionTitle}>Checkbox 多选</Text>
+        <Text style={dynamicStyles.info}>{selectedInfo}</Text>
+        <View style={dynamicStyles.tableContainer}>
           <CoolTable
             ref={tableRef}
             data={DATA}
             columns={CHECKBOX_COLUMNS}
             rowKey="id"
-            style={commonStyles.table}
-            rowStyle={commonStyles.row}
-            headerRowStyle={commonStyles.headerRow}
+            style={dynamicStyles.table}
+            rowStyle={dynamicStyles.row}
+            headerRowStyle={dynamicStyles.headerRow}
             checkboxConfig={{
               checkAll: true,
               highlight: true,
@@ -71,26 +122,26 @@ const CheckboxRadioDemo: React.FC = () => {
         </View>
         <View style={styles.actions}>
           <TouchableOpacity
-            style={styles.btn}
+            style={dynamicStyles.btn}
             onPress={() => tableRef.current?.clearCheckboxRow()}
           >
-            <Text style={styles.btnText}>清空选择</Text>
+            <Text style={dynamicStyles.btnText}>清空选择</Text>
           </TouchableOpacity>
         </View>
       </View>
 
       {/* Radio */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Radio 单选</Text>
-        <Text style={styles.info}>{radioInfo}</Text>
-        <View style={commonStyles.tableContainer}>
+        <Text style={dynamicStyles.sectionTitle}>Radio 单选</Text>
+        <Text style={dynamicStyles.info}>{radioInfo}</Text>
+        <View style={dynamicStyles.tableContainer}>
           <CoolTable
             data={DATA}
             columns={RADIO_COLUMNS}
             rowKey="id"
-            style={commonStyles.table}
-            rowStyle={commonStyles.row}
-            headerRowStyle={commonStyles.headerRow}
+            style={dynamicStyles.table}
+            rowStyle={dynamicStyles.row}
+            headerRowStyle={dynamicStyles.headerRow}
             radioConfig={{
               highlight: true,
               onChange: ({ row }) => {
@@ -109,31 +160,9 @@ const styles = StyleSheet.create({
     margin: 16,
     marginBottom: 8,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  info: {
-    fontSize: 13,
-    color: colors.primary,
-    marginBottom: 8,
-  },
   actions: {
     flexDirection: 'row',
     marginTop: 8,
-  },
-  btn: {
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 4,
-    marginRight: 8,
-  },
-  btnText: {
-    color: '#fff',
-    fontSize: 13,
   },
 });
 

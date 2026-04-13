@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
-import { Text } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Text, StyleSheet } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const INITIAL_DATA = [
   { id: '1', name: '苹果', qty: 10, unit: 'kg', category: 'fruit' },
@@ -33,14 +34,27 @@ const COLUMNS: ITableColumn[] = [
 ];
 
 const EditDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
   const [editInfo, setEditInfo] = useState('');
+
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        sortInfo: {
+          ...commonStyles.sortInfo,
+          color: colors.primary,
+        },
+      }),
+    [colors]
+  );
 
   return (
     <DemoLayout
       title="单元格编辑"
       description="单击单元格进入编辑模式，支持文本/数字/下拉选择"
       extraInfo={
-        <Text style={commonStyles.sortInfo}>
+        <Text style={dynamicStyles.sortInfo}>
           {editInfo || '单击可编辑的单元格进入编辑'}
         </Text>
       }
@@ -49,6 +63,7 @@ const EditDemo: React.FC = () => {
         data={INITIAL_DATA}
         columns={COLUMNS}
         rowKey="id"
+        flex
         editConfig={{
           trigger: 'click',
           onEditSave: ({ row, column, value }) => {

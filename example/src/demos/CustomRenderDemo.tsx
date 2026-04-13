@@ -6,59 +6,87 @@ import TableContainer from '../components/TableContainer';
 import { generateMembers } from '../utils/dataUtils';
 import {
   renderInitialsAvatar,
-  renderPointsProgress,
-  renderPrice,
-  renderTags,
-  renderActionButtons,
+  createThemedRenderUtils,
 } from '../utils/renderUtils';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const CustomRenderDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+  const themedRenders = useMemo(
+    () => createThemedRenderUtils(colors),
+    [colors]
+  );
   const data = useMemo(() => generateMembers(10), []);
 
-  const renderMemberInfo = useCallback((params: any) => {
-    const { row } = params;
-    return (
-      <View style={styles.memberInfoContainer}>
-        {renderInitialsAvatar({ ...params, val: row.name })}
-        <View style={styles.memberDetail}>
-          <Text style={styles.memberName}>{row.name}</Text>
-          <Text style={styles.memberPhone}>{row.phone}</Text>
-        </View>
-      </View>
-    );
-  }, []);
-
-  const renderLevel = useCallback((params: any) => {
-    const { val } = params;
-    const levelConfig: Record<string, { color: string; bgColor: string }> = {
-      普通: { color: '#999', bgColor: '#f5f5f5' },
-      银卡: { color: '#8c8c8c', bgColor: '#f5f5f5' },
-      金卡: { color: '#d4b106', bgColor: '#fffbe6' },
-      黑卡: { color: '#fff', bgColor: '#262626' },
-    };
-    const config = levelConfig[val as string] ?? levelConfig['普通'];
-
-    return (
-      <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
-        <Text style={[styles.levelText, { color: config.color }]}>{val}</Text>
-      </View>
-    );
-  }, []);
-
-  const renderActions = useCallback((params: any) => {
-    const actions = [
-      {
-        text: '详情',
-        onPress: (row: any) =>
-          Alert.alert(
-            '会员详情',
-            `姓名: ${row.name}\n等级: ${row.level}\n积分: ${row.points}`
-          ),
+  const themedStyles = useMemo(
+    () => ({
+      memberName: {
+        fontSize: 14,
+        fontWeight: 'bold' as const,
+        color: colors.text,
+        marginBottom: 2,
       },
-    ];
-    return renderActionButtons(params, actions);
-  }, []);
+      memberPhone: {
+        fontSize: 12,
+        color: colors.textMuted,
+      },
+    }),
+    [colors]
+  );
+
+  const renderMemberInfo = useCallback(
+    (params: any) => {
+      const { row } = params;
+      return (
+        <View style={styles.memberInfoContainer}>
+          {renderInitialsAvatar({ ...params, val: row.name })}
+          <View style={styles.memberDetail}>
+            <Text style={themedStyles.memberName}>{row.name}</Text>
+            <Text style={themedStyles.memberPhone}>{row.phone}</Text>
+          </View>
+        </View>
+      );
+    },
+    [themedStyles]
+  );
+
+  const renderLevel = useCallback(
+    (params: any) => {
+      const { val } = params;
+      const levelConfig: Record<string, { color: string; bgColor: string }> = {
+        普通: { color: colors.textMuted, bgColor: colors.surfaceElevated },
+        银卡: { color: colors.textSecondary, bgColor: colors.surfaceElevated },
+        金卡: { color: '#d4b106', bgColor: 'rgba(212, 177, 6, 0.15)' },
+        黑卡: { color: '#fff', bgColor: '#262626' },
+      };
+      const config = levelConfig[val as string] ?? levelConfig['普通'];
+
+      return (
+        <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
+          <Text style={[styles.levelText, { color: config.color }]}>{val}</Text>
+        </View>
+      );
+    },
+    [colors]
+  );
+
+  const renderActions = useCallback(
+    (params: any) => {
+      const actions = [
+        {
+          text: '详情',
+          onPress: (row: any) =>
+            Alert.alert(
+              '会员详情',
+              `姓名: ${row.name}\n等级: ${row.level}\n积分: ${row.points}`
+            ),
+        },
+      ];
+      return themedRenders.renderActionButtons(params, actions);
+    },
+    [themedRenders]
+  );
 
   const columns: ITableColumn[] = useMemo(
     () => [
@@ -81,21 +109,21 @@ const CustomRenderDemo: React.FC = () => {
         title: '积分',
         width: 90,
         align: 'center',
-        render: renderPointsProgress,
+        render: themedRenders.renderPointsProgress,
       },
       {
         key: 'totalSpend',
         title: '累计消费',
         width: 90,
         align: 'right',
-        render: renderPrice,
+        render: themedRenders.renderPrice,
       },
       {
         key: 'tags',
         title: '标签',
         width: 120,
         align: 'left',
-        render: renderTags,
+        render: themedRenders.renderTags,
       },
       {
         key: 'actions',
@@ -105,7 +133,7 @@ const CustomRenderDemo: React.FC = () => {
         render: renderActions,
       },
     ],
-    [renderMemberInfo, renderLevel, renderActions]
+    [renderMemberInfo, renderLevel, renderActions, themedRenders]
   );
 
   return (
@@ -131,16 +159,6 @@ const styles = StyleSheet.create({
   },
   memberDetail: {
     flex: 1,
-  },
-  memberName: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: colors.text,
-    marginBottom: 2,
-  },
-  memberPhone: {
-    fontSize: 12,
-    color: colors.textLight,
   },
   levelBadge: {
     paddingHorizontal: 8,

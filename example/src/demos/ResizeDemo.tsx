@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { Text } from 'react-native';
+import { Text, StyleSheet } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { commonStyles } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
   { id: '1', name: 'iPhone 15', category: '手机', price: 5999, sales: 1200 },
@@ -14,6 +15,8 @@ const DATA = [
 ];
 
 const ResizeDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
   const [resizeInfo, setResizeInfo] = useState('');
 
   const columns: ITableColumn[] = useMemo(
@@ -26,13 +29,24 @@ const ResizeDemo: React.FC = () => {
     []
   );
 
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        sortInfo: {
+          ...commonStyles.sortInfo,
+          color: colors.primary,
+        },
+      }),
+    [colors]
+  );
+
   const extraInfo = useMemo(
     () => (
-      <Text style={commonStyles.sortInfo}>
+      <Text style={dynamicStyles.sortInfo}>
         {resizeInfo || '拖拽表头右边缘调整列宽'}
       </Text>
     ),
-    [resizeInfo]
+    [resizeInfo, dynamicStyles]
   );
 
   return (
@@ -45,6 +59,7 @@ const ResizeDemo: React.FC = () => {
         data={DATA}
         columns={columns}
         rowKey="id"
+        flex
         resizeConfig={{
           enabled: true,
           minWidth: 50,

@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -9,15 +9,15 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
-import { colors } from '../styles/commonStyles';
+import { useTheme } from '../context/ThemeContext';
+import type { ITheme, ICategoryColor } from '../styles/theme';
+import { SECTION_CATEGORY_MAP } from '../styles/theme';
 
 export interface DemoCardItem {
   id: string;
   title: string;
   description: string;
   icon: string;
-  iconBg: string;
-  iconColor: string;
 }
 
 export interface DemoSectionData {
@@ -33,28 +33,54 @@ type HomeNavProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
 const DemoCard: React.FC<{
   item: DemoCardItem;
+  categoryColor: ICategoryColor;
   onPress: () => void;
-  isRight?: boolean;
-}> = ({ item, onPress, isRight }) => (
-  <TouchableOpacity
-    style={[styles.card, isRight ? styles.cardRight : styles.cardLeft]}
-    onPress={onPress}
-    activeOpacity={0.7}
-  >
-    <View style={[styles.iconCircle, { backgroundColor: item.iconBg }]}>
-      <Text style={[styles.iconText, { color: item.iconColor }]}>
-        {item.icon}
-      </Text>
-    </View>
-    <Text style={styles.cardTitle}>{item.title}</Text>
-    <Text style={styles.cardDesc} numberOfLines={2}>
-      {item.description}
-    </Text>
-  </TouchableOpacity>
-);
+  theme: ITheme;
+}> = ({ item, categoryColor, onPress, theme }) => {
+  const { colors } = theme;
+
+  return (
+    <TouchableOpacity
+      style={[
+        styles.card,
+        {
+          backgroundColor: colors.surface,
+          shadowColor: colors.cardShadow,
+          borderColor: colors.border,
+        },
+      ]}
+      onPress={onPress}
+      activeOpacity={0.7}
+    >
+      <View
+        style={[styles.cardAccent, { backgroundColor: categoryColor.accent }]}
+      />
+      <View style={styles.cardContent}>
+        <View
+          style={[styles.iconCircle, { backgroundColor: categoryColor.bg }]}
+        >
+          <Text style={[styles.iconText, { color: categoryColor.icon }]}>
+            {item.icon}
+          </Text>
+        </View>
+        <Text style={[styles.cardTitle, { color: colors.text }]}>
+          {item.title}
+        </Text>
+        <Text
+          style={[styles.cardDesc, { color: colors.textSecondary }]}
+          numberOfLines={2}
+        >
+          {item.description}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ sections }) => {
   const navigation = useNavigation<HomeNavProp>();
+  const { theme, isDark, toggleTheme } = useTheme();
+  const { colors } = theme;
 
   const handleSelectDemo = useCallback(
     (item: DemoCardItem) => {
@@ -63,14 +89,70 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ sections }) => {
     [navigation]
   );
 
+  const dynamicStyles = useMemo(
+    () =>
+      StyleSheet.create({
+        container: {
+          flex: 1,
+          backgroundColor: colors.background,
+        },
+        header: {
+          paddingTop: 20,
+          paddingBottom: 20,
+          paddingHorizontal: 20,
+          backgroundColor: colors.surface,
+          borderBottomLeftRadius: 24,
+          borderBottomRightRadius: 24,
+          shadowColor: colors.cardShadow,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.5,
+          shadowRadius: 12,
+          elevation: 4,
+          marginBottom: 8,
+        },
+      }),
+    [colors]
+  );
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.header}>
-        <Text style={styles.appTitle}>CoolTable</Text>
-        <Text style={styles.appSubtitle}>React Native 高性能表格组件</Text>
+    <ScrollView
+      style={dynamicStyles.container}
+      showsVerticalScrollIndicator={false}
+    >
+      <View style={dynamicStyles.header}>
+        <View style={styles.headerRow}>
+          <View>
+            <Text style={[styles.appTitle, { color: colors.primary }]}>
+              CoolTable
+            </Text>
+            <Text style={[styles.appSubtitle, { color: colors.textSecondary }]}>
+              React Native {'\u9AD8\u6027\u80FD\u8868\u683C\u7EC4\u4EF6'}
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={[
+              styles.themeToggle,
+              {
+                backgroundColor: isDark
+                  ? colors.surfaceElevated
+                  : colors.primaryLight,
+              },
+            ]}
+            onPress={toggleTheme}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.themeToggleIcon}>
+              {isDark ? '\u2600\uFE0F' : '\u{1F319}'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {sections.map((section) => {
+        const categoryKey = SECTION_CATEGORY_MAP[section.title] || 'basic';
+        const categoryColor =
+          colors.categoryColors[categoryKey] || colors.categoryColors.basic;
+
         const pairs: DemoCardItem[][] = [];
         for (let i = 0; i < section.items.length; i += 2) {
           pairs.push(section.items.slice(i, i + 2));
@@ -79,22 +161,36 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ sections }) => {
         return (
           <View key={section.title} style={styles.section}>
             <View style={styles.sectionHeader}>
-              <View style={styles.sectionLine} />
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <View style={styles.sectionLine} />
+              <View
+                style={[
+                  styles.sectionDot,
+                  { backgroundColor: categoryColor.accent },
+                ]}
+              />
+              <Text
+                style={[styles.sectionTitle, { color: categoryColor.accent }]}
+              >
+                {section.title}
+              </Text>
+              <View
+                style={[styles.sectionLine, { backgroundColor: colors.border }]}
+              />
             </View>
 
             {pairs.map((pair, pairIndex) => (
               <View key={pairIndex} style={styles.cardRow}>
                 <DemoCard
                   item={pair[0]}
+                  categoryColor={categoryColor}
                   onPress={() => handleSelectDemo(pair[0])}
+                  theme={theme}
                 />
                 {pair[1] ? (
                   <DemoCard
                     item={pair[1]}
-                    isRight
+                    categoryColor={categoryColor}
                     onPress={() => handleSelectDemo(pair[1])}
+                    theme={theme}
                   />
                 ) : (
                   <View style={styles.cardPlaceholder} />
@@ -106,44 +202,41 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ sections }) => {
       })}
 
       <View style={styles.footer}>
-        <Text style={styles.footerText}>react-native-cool-table</Text>
+        <Text style={[styles.footerText, { color: colors.textMuted }]}>
+          react-native-cool-table
+        </Text>
       </View>
     </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    paddingTop: 24,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
-    backgroundColor: '#fff',
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    marginBottom: 8,
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   appTitle: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: colors.primary,
     marginBottom: 4,
   },
   appSubtitle: {
     fontSize: 14,
-    color: colors.textSecondary,
+  },
+  themeToggle: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  themeToggleIcon: {
+    fontSize: 20,
   },
   section: {
     paddingHorizontal: 16,
-    marginTop: 12,
+    marginTop: 16,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -151,16 +244,20 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     paddingHorizontal: 4,
   },
+  sectionDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    marginRight: 12,
+  },
   sectionLine: {
     flex: 1,
     height: 1,
-    backgroundColor: '#e8e8e8',
-  },
-  sectionTitle: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.textLight,
-    paddingHorizontal: 12,
   },
   cardRow: {
     flexDirection: 'row',
@@ -169,24 +266,29 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '48%',
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
+    borderRadius: 16,
+    overflow: 'hidden',
+    elevation: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
   },
-  cardLeft: {},
-  cardRight: {},
+  cardAccent: {
+    height: 3,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+  },
+  cardContent: {
+    padding: 16,
+  },
   cardPlaceholder: {
     width: '48%',
   },
   iconCircle: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
@@ -198,13 +300,11 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 15,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 4,
   },
   cardDesc: {
     fontSize: 12,
-    color: colors.textSecondary,
-    lineHeight: 16,
+    lineHeight: 17,
   },
   footer: {
     alignItems: 'center',
@@ -212,7 +312,6 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
-    color: colors.textLight,
   },
 });
 

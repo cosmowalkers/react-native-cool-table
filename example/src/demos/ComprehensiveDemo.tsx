@@ -4,23 +4,27 @@ import type { ITableColumn, TSortType } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateInventory, sortData } from '../utils/dataUtils';
-import {
-  renderPrice,
-  renderStock,
-  renderStatusBadge,
-  renderActionButtons,
-} from '../utils/renderUtils';
-import { colors } from '../styles/commonStyles';
-
-const inventoryStatusConfig = {
-  在售: { color: '#52c41a', bgColor: '#f6ffed' },
-  缺货: { color: '#ff4d4f', bgColor: '#fff1f0' },
-  预售: { color: '#1890ff', bgColor: '#e6f7ff' },
-  下架: { color: '#999', bgColor: '#f5f5f5' },
-};
+import { createThemedRenderUtils } from '../utils/renderUtils';
+import { useTheme } from '../context/ThemeContext';
 
 const ComprehensiveDemo: React.FC = () => {
+  const { theme } = useTheme();
+  const { colors } = theme;
+  const themedRenders = useMemo(
+    () => createThemedRenderUtils(colors),
+    [colors]
+  );
   const [data, setData] = useState(() => generateInventory(15));
+
+  const inventoryStatusConfig = useMemo(
+    () => ({
+      在售: { color: colors.success, bgColor: colors.primaryLight },
+      缺货: { color: colors.error, bgColor: colors.surfaceElevated },
+      预售: { color: colors.primary, bgColor: colors.primaryLight },
+      下架: { color: colors.textMuted, bgColor: colors.surfaceElevated },
+    }),
+    [colors]
+  );
 
   const handleSortChange = useCallback(
     ({ key, sort }: { key: string; colIndex: number; sort: TSortType }) => {
@@ -30,24 +34,28 @@ const ComprehensiveDemo: React.FC = () => {
   );
 
   const renderInventoryStatus = useCallback(
-    (params: any) => renderStatusBadge(params, inventoryStatusConfig),
-    []
+    (params: any) =>
+      themedRenders.renderStatusBadge(params, inventoryStatusConfig),
+    [inventoryStatusConfig, themedRenders]
   );
 
-  const renderActions = useCallback((params: any) => {
-    const actions = [
-      {
-        text: '编辑',
-        onPress: (row: any) => Alert.alert('编辑', `编辑商品: ${row.name}`),
-      },
-      {
-        text: '下架',
-        onPress: (row: any) => Alert.alert('下架', `确认下架 ${row.name}?`),
-        style: { backgroundColor: colors.warning },
-      },
-    ];
-    return renderActionButtons(params, actions);
-  }, []);
+  const renderActions = useCallback(
+    (params: any) => {
+      const actions = [
+        {
+          text: '编辑',
+          onPress: (row: any) => Alert.alert('编辑', `编辑商品: ${row.name}`),
+        },
+        {
+          text: '下架',
+          onPress: (row: any) => Alert.alert('下架', `确认下架 ${row.name}?`),
+          style: { backgroundColor: colors.warning },
+        },
+      ];
+      return themedRenders.renderActionButtons(params, actions);
+    },
+    [colors, themedRenders]
+  );
 
   const treeConfig = useMemo(
     () => ({
@@ -80,7 +88,7 @@ const ComprehensiveDemo: React.FC = () => {
         width: 80,
         align: 'right',
         sortable: true,
-        render: renderPrice,
+        render: themedRenders.renderPrice,
       },
       {
         key: 'stock',
@@ -88,7 +96,7 @@ const ComprehensiveDemo: React.FC = () => {
         width: 70,
         align: 'center',
         sortable: true,
-        render: renderStock,
+        render: themedRenders.renderStock,
       },
       {
         key: 'status',
@@ -106,7 +114,7 @@ const ComprehensiveDemo: React.FC = () => {
         render: renderActions,
       },
     ],
-    [renderInventoryStatus, renderActions]
+    [renderInventoryStatus, renderActions, themedRenders]
   );
 
   return (
