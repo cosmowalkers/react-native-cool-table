@@ -37,7 +37,7 @@ const DragHandle = (
     return PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderTerminationRequest: () => false,
+      onPanResponderTerminationRequest: () => true,
       onPanResponderGrant: () => {
         startDrag(rowIndex);
       },

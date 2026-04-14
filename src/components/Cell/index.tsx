@@ -25,7 +25,7 @@ import HighlightText from '../HighlightText';
 import EditCell from '../EditCell';
 import ValidationError from '../ValidationError';
 import styles from './styles';
-import { useTableStatic, useTableState } from '../../context';
+import { useTableStatic, useTableState, useLocale } from '../../context';
 import DragHandle from '../DragHandle';
 
 const Cell = (
@@ -72,6 +72,7 @@ const Cell = (
     textColor: tableTextColor,
     headerTextColor: tableHeaderTextColor,
   } = useTableStatic();
+  const locale = useLocale();
   const {
     sortState,
     setSortState,
@@ -367,7 +368,15 @@ const Cell = (
     if (!isCheckboxType) return null;
     if (isHeader) {
       return (
-        <View style={styles.checkbox}>
+        <View
+          style={styles.checkbox}
+          accessible
+          accessibilityRole="checkbox"
+          accessibilityState={{
+            checked: isCheckedAll ? true : isIndeterminate ? 'mixed' : false,
+          }}
+          accessibilityLabel="Select all"
+        >
           <View
             style={[
               styles.checkboxBox,
@@ -385,7 +394,12 @@ const Cell = (
     }
     const checked = isChecked(_rowKey);
     return (
-      <View style={styles.checkbox}>
+      <View
+        style={styles.checkbox}
+        accessible
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked }}
+      >
         <View style={[styles.checkboxBox, checked && styles.checkboxChecked]}>
           {checked && <View style={styles.checkboxTick} />}
         </View>
@@ -398,7 +412,12 @@ const Cell = (
     if (!isRadioType || isHeader) return null;
     const selected = radioKey === _rowKey;
     return (
-      <View style={styles.radio}>
+      <View
+        style={styles.radio}
+        accessible
+        accessibilityRole="radio"
+        accessibilityState={{ selected }}
+      >
         <View style={[styles.radioOuter, selected && styles.radioSelected]}>
           {selected && <View style={styles.radioInner} />}
         </View>
@@ -621,13 +640,17 @@ const Cell = (
                 style={styles.filterResetBtn}
                 onPress={resetFilter}
               >
-                <Text style={styles.filterResetText}>重置</Text>
+                <Text style={styles.filterResetText}>
+                  {locale?.filterReset}
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.filterConfirmBtn}
                 onPress={() => confirmFilter(tempFilterValues)}
               >
-                <Text style={styles.filterConfirmText}>确认</Text>
+                <Text style={styles.filterConfirmText}>
+                  {locale?.filterConfirm}
+                </Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>

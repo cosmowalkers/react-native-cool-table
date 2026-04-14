@@ -10,8 +10,17 @@ const Sort = ({
   descIconProps,
   sortIndex,
 }: ITableSortProps) => {
+  const label = sortStatus
+    ? `Sorted ${sortStatus === 'asc' ? 'ascending' : 'descending'}`
+    : 'Not sorted';
+
   return (
-    <View style={[styles.container, style]}>
+    <View
+      style={[styles.container, style]}
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={label}
+    >
       {/* asc arrow */}
       <View
         style={[

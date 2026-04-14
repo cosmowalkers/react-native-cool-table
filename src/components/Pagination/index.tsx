@@ -2,6 +2,7 @@ import React, { memo, useCallback, useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import type { StyleProp, ViewStyle } from 'react-native';
 import type { IPaginationConfig } from '../../types';
+import { useLocale } from '../../context';
 import styles from './styles';
 
 interface IPaginationProps {
@@ -61,6 +62,7 @@ const Pagination = memo(
     paginationConfig,
     style,
   }: IPaginationProps) => {
+    const locale = useLocale();
     // All hooks must be called before any early return
     const _onPrev = useCallback(() => {
       if (currentPage > 1) {
@@ -98,18 +100,23 @@ const Pagination = memo(
     const isPrevDisabled = currentPage <= 1;
     const isNextDisabled = currentPage >= maxPage;
 
+    const totalText = locale.paginationTotal.replace('{total}', String(total));
+
     return (
       <View style={[styles.container, paginationConfig?.style, style]}>
-        {/* 上一页 */}
+        {/* Prev */}
         <TouchableOpacity
           onPress={_onPrev}
           disabled={isPrevDisabled}
           style={[styles.navButton, isPrevDisabled && styles.navButtonDisabled]}
+          accessibilityRole="button"
+          accessibilityLabel={locale.paginationPrev}
+          accessibilityState={{ disabled: isPrevDisabled }}
         >
-          <Text style={styles.navButtonText}>上一页</Text>
+          <Text style={styles.navButtonText}>{locale.paginationPrev}</Text>
         </TouchableOpacity>
 
-        {/* 页码按钮 */}
+        {/* Page buttons */}
         {pageList.map((item) => {
           if (item === 'ellipsis-left' || item === 'ellipsis-right') {
             return (
@@ -137,22 +144,25 @@ const Pagination = memo(
           );
         })}
 
-        {/* 下一页 */}
+        {/* Next */}
         <TouchableOpacity
           onPress={_onNext}
           disabled={isNextDisabled}
           style={[styles.navButton, isNextDisabled && styles.navButtonDisabled]}
+          accessibilityRole="button"
+          accessibilityLabel={locale.paginationNext}
+          accessibilityState={{ disabled: isNextDisabled }}
         >
-          <Text style={styles.navButtonText}>下一页</Text>
+          <Text style={styles.navButtonText}>{locale.paginationNext}</Text>
         </TouchableOpacity>
 
-        {/* 总数 */}
-        <Text style={styles.infoText}>{`共 ${total} 条`}</Text>
+        {/* Total */}
+        <Text style={styles.infoText}>{totalText}</Text>
 
-        {/* 每页条数选择 */}
+        {/* Page size selector */}
         {pageSizes && pageSizes.length > 0 && (
           <>
-            <Text style={styles.infoText}>每页</Text>
+            <Text style={styles.infoText}>{locale.paginationPerPage}</Text>
             {pageSizes.map((size) => {
               const isActive = size === pageSize;
               return (
@@ -175,7 +185,9 @@ const Pagination = memo(
                 </TouchableOpacity>
               );
             })}
-            <Text style={styles.infoText}>条</Text>
+            <Text style={styles.infoText}>
+              {locale.paginationPerPageSuffix}
+            </Text>
           </>
         )}
       </View>

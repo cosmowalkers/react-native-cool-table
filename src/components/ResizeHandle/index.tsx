@@ -31,7 +31,7 @@ const ResizeHandle = (
       PanResponder.create({
         onStartShouldSetPanResponder: () => true,
         onMoveShouldSetPanResponder: () => true,
-        onPanResponderTerminationRequest: () => false,
+        onPanResponderTerminationRequest: () => true,
         onPanResponderGrant: () => {
           setIsDragging(true);
         },

@@ -246,6 +246,8 @@ export type TExpandable = {
   renderLoading?: () => ReactNode;
   /** 是否缓存已加载的子节点 */
   cacheChildren?: boolean;
+  /** 异步加载失败回调 */
+  onLoadError?: (params: { row: TItem; error: unknown }) => void;
 };
 
 export interface ITableCellProps
@@ -437,6 +439,8 @@ export interface ITableProps extends ICommonTableProps {
   columnVisibilityConfig?: IColumnVisibilityConfig;
   /** 搜索高亮配置 */
   searchConfig?: ISearchConfig;
+  /** 国际化文案配置 */
+  locale?: ILocale;
 }
 
 export interface ITableRowProps {
@@ -710,6 +714,7 @@ export type THeaderLevel = IHeaderCell[];
 // ============================================================
 
 export interface ISpanResult {
+  /** @deprecated 暂未实现，仅保留类型兼容。当前仅 colspan 生效 */
   rowspan: number;
   colspan: number;
 }
@@ -901,6 +906,35 @@ export interface ISearchConfig {
   highlightStyle?: StyleProp<TextStyle>;
   /** 限定搜索的列 key */
   columnKeys?: string[];
+}
+
+// ============================================================
+// Locale / i18n
+// ============================================================
+
+export interface ILocale {
+  /** 筛选面板 - 重置按钮 */
+  filterReset?: string;
+  /** 筛选面板 - 确认按钮 */
+  filterConfirm?: string;
+  /** 分页 - 上一页 */
+  paginationPrev?: string;
+  /** 分页 - 下一页 */
+  paginationNext?: string;
+  /** 分页 - 总条数模板，{total} 会被替换为实际数字 */
+  paginationTotal?: string;
+  /** 分页 - 每页前缀 */
+  paginationPerPage?: string;
+  /** 分页 - 每页后缀 */
+  paginationPerPageSuffix?: string;
+  /** 列管理器 - 标题 */
+  columnManagerTitle?: string;
+  /** 列管理器 - 取消按钮 */
+  columnManagerCancel?: string;
+  /** 列管理器 - 确认按钮 */
+  columnManagerConfirm?: string;
+  /** 空状态 - 默认文案 */
+  emptyText?: string;
 }
 
 // ============================================================

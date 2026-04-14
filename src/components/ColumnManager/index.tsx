@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import type { ITableColumn } from '../../types';
+import { useLocale } from '../../context';
 import styles from './styles';
 
 interface IColumnManagerProps {
@@ -38,6 +39,7 @@ const ColumnManager = (
   }: IColumnManagerProps,
   _ref: unknown
 ) => {
+  const locale = useLocale();
   const [localHiddenKeys, setLocalHiddenKeys] = useState<Set<string>>(
     new Set(hiddenKeys)
   );
@@ -106,7 +108,7 @@ const ColumnManager = (
       <View style={styles.overlay}>
         <View style={styles.panel}>
           <View style={styles.header}>
-            <Text style={styles.headerText}>列显示设置</Text>
+            <Text style={styles.headerText}>{locale.columnManagerTitle}</Text>
           </View>
           <ScrollView style={styles.list}>
             {columns.map(renderColumnRow)}
@@ -117,14 +119,18 @@ const ColumnManager = (
               onPress={_onCancel}
               activeOpacity={0.6}
             >
-              <Text style={styles.cancelText}>取消</Text>
+              <Text style={styles.cancelText}>
+                {locale.columnManagerCancel}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.footerButton}
               onPress={_onConfirm}
               activeOpacity={0.6}
             >
-              <Text style={styles.confirmText}>确认</Text>
+              <Text style={styles.confirmText}>
+                {locale.columnManagerConfirm}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

@@ -65,8 +65,18 @@ export const useTreeLazyLoad = ({
           next.add(rowKey);
           return next;
         });
-      } catch (_error: unknown) {
-        // On error: don't mark as loaded, just clear loading
+      } catch (error: unknown) {
+        // Notify consumer of the load failure
+        if (isFunction(config.onLoadError)) {
+          config.onLoadError({ row, error });
+        } else if (__DEV__) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            '[CoolTable] loadChildren failed for row:',
+            rowKey,
+            error
+          );
+        }
       } finally {
         // Remove from loading
         setLoadingKeys((prev) => {

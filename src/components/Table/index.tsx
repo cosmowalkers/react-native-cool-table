@@ -32,7 +32,12 @@ import type {
 import { isFunction } from 'lodash';
 import Row from '../Row';
 import HeaderRow from '../HeaderRow';
-import { TableStaticContext, TableStateContext } from '../../context';
+import {
+  TableStaticContext,
+  TableStateContext,
+  LocaleProvider,
+  useLocale,
+} from '../../context';
 import { buildRowKey } from '../../utils';
 import useSort from '../../hooks/useSort';
 import useFilter from '../../hooks/useFilter';
@@ -106,6 +111,7 @@ const Table = (
     editConfig,
     validationConfig,
     contextMenuConfig,
+    locale: localeProp,
   }: ITableProps,
   ref: any
 ) => {
@@ -113,6 +119,23 @@ const Table = (
   const [contentWidth, setContentWidth] = useState(0);
   const [positionX] = useState(new Animated.Value(0));
   const flatListRef = useRef<FlatList>(null);
+
+  // === DEV warnings ===
+  useEffect(() => {
+    if (__DEV__ && !rowKey && !keyExtractor) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[CoolTable] Neither "rowKey" nor "keyExtractor" is provided. ' +
+          'Row keys will fall back to array indices, which may cause unexpected behavior when data changes. ' +
+          'Consider providing a "rowKey" prop.'
+      );
+    }
+    // Only warn once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // === Locale: prop > LocaleProvider > zhCN ===
+  const locale = useLocale(localeProp);
 
   // === Column Visibility ===
   const { visibleColumns, hideColumn, showColumn, getHiddenColumns } =
@@ -197,7 +220,7 @@ const Table = (
     editValues,
     setEditValue,
     cancelEdit: editCancelEdit,
-  } = useEditableCell({ editConfig });
+  } = useEditableCell({ editConfig, data, columns: _columns, rowKey });
 
   // === Validation ===
   const {
@@ -721,58 +744,63 @@ const Table = (
   }, [border, borderColor]);
 
   return (
-    <TableStaticContext.Provider value={staticValue}>
-      <TableStateContext.Provider value={stateValue}>
-        <View style={[styles.content, borderStyle, style]} onLayout={_onLayout}>
-          <Animated.ScrollView
-            horizontal
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            onScroll={onScroll}
+    <LocaleProvider locale={locale}>
+      <TableStaticContext.Provider value={staticValue}>
+        <TableStateContext.Provider value={stateValue}>
+          <View
+            style={[styles.content, borderStyle, style]}
+            onLayout={_onLayout}
           >
-            <View>
-              {paginatedData?.length ? (
-                <FlatList
-                  ref={flatListRef}
-                  showsVerticalScrollIndicator={false}
-                  showsHorizontalScrollIndicator={false}
-                  keyExtractor={getListKey}
-                  stickyHeaderIndices={[0]}
-                  initialNumToRender={25}
-                  ListHeaderComponent={renderHeader}
-                  ListFooterComponent={renderFooter}
-                  {...virtualProps}
-                  {...flatListProps}
-                  data={paginatedData}
-                  renderItem={renderItem}
-                />
-              ) : (
-                renderEmpty()
-              )}
-            </View>
-          </Animated.ScrollView>
-          {paginationConfig && (
-            <Pagination
-              currentPage={paginationPage}
-              pageSize={paginationPageSize}
-              total={paginationTotal}
-              maxPage={paginationMaxPage}
-              onPageChange={paginationSetPage}
-              onPageSizeChange={paginationSetPageSize}
-              paginationConfig={paginationConfig}
+            <Animated.ScrollView
+              horizontal
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              onScroll={onScroll}
+            >
+              <View>
+                {paginatedData?.length ? (
+                  <FlatList
+                    ref={flatListRef}
+                    showsVerticalScrollIndicator={false}
+                    showsHorizontalScrollIndicator={false}
+                    keyExtractor={getListKey}
+                    stickyHeaderIndices={[0]}
+                    initialNumToRender={25}
+                    ListHeaderComponent={renderHeader}
+                    ListFooterComponent={renderFooter}
+                    {...virtualProps}
+                    {...flatListProps}
+                    data={paginatedData}
+                    renderItem={renderItem}
+                  />
+                ) : (
+                  renderEmpty()
+                )}
+              </View>
+            </Animated.ScrollView>
+            {paginationConfig && (
+              <Pagination
+                currentPage={paginationPage}
+                pageSize={paginationPageSize}
+                total={paginationTotal}
+                maxPage={paginationMaxPage}
+                onPageChange={paginationSetPage}
+                onPageSizeChange={paginationSetPageSize}
+                paginationConfig={paginationConfig}
+              />
+            )}
+            {renderLoading()}
+            <Tooltip state={tooltipState} onClose={hideTooltip} />
+            <ContextMenu
+              menuState={contextMenuState}
+              config={contextMenuConfig}
+              onClose={hideContextMenu}
             />
-          )}
-          {renderLoading()}
-          <Tooltip state={tooltipState} onClose={hideTooltip} />
-          <ContextMenu
-            menuState={contextMenuState}
-            config={contextMenuConfig}
-            onClose={hideContextMenu}
-          />
-        </View>
-      </TableStateContext.Provider>
-    </TableStaticContext.Provider>
+          </View>
+        </TableStateContext.Provider>
+      </TableStaticContext.Provider>
+    </LocaleProvider>
   );
 };
 

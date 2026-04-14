@@ -6,6 +6,9 @@ import type { IEditConfig, ITableColumn, TItem } from '../types';
 
 interface IUseEditableCellParams {
   editConfig?: IEditConfig;
+  data?: TItem[];
+  columns?: ITableColumn[];
+  rowKey?: string | ((item: TItem, index: number) => string);
 }
 
 interface ISaveEditParams {
@@ -26,6 +29,9 @@ interface IUseEditableCellReturn {
 
 export function useEditableCell({
   editConfig,
+  data,
+  columns,
+  rowKey,
 }: IUseEditableCellParams): IUseEditableCellReturn {
   const [editingCell, setEditingCell] = useState<{
     rowKey: string;
@@ -41,6 +47,15 @@ export function useEditableCell({
 
   const editingCellRef = useRef(editingCell);
   editingCellRef.current = editingCell;
+
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  const columnsRef = useRef(columns);
+  columnsRef.current = columns;
+
+  const rowKeyRef = useRef(rowKey);
+  rowKeyRef.current = rowKey;
 
   const setEditValue = useCallback((key: string, value: unknown) => {
     setEditValues((prev) => {
@@ -63,10 +78,28 @@ export function useEditableCell({
       });
 
       if (config?.onEditCancel) {
-        config.onEditCancel({
-          row: undefined as unknown as TItem,
-          column: undefined as unknown as ITableColumn,
+        // Find actual row and column objects for the callback
+        const currentData = dataRef.current ?? [];
+        const currentColumns = columnsRef.current ?? [];
+        const currentRowKey = rowKeyRef.current;
+
+        const row = currentData.find((item, index) => {
+          if (typeof currentRowKey === 'function') {
+            return currentRowKey(item, index) === currentCell.rowKey;
+          }
+          if (typeof currentRowKey === 'string') {
+            return String(item[currentRowKey]) === currentCell.rowKey;
+          }
+          return String(index) === currentCell.rowKey;
         });
+
+        const column = currentColumns.find(
+          (col) => col.key === currentCell.columnKey
+        );
+
+        if (row && column) {
+          config.onEditCancel({ row, column });
+        }
       }
     }
 

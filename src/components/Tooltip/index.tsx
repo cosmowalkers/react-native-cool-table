@@ -4,7 +4,7 @@ import {
   Text,
   TouchableWithoutFeedback,
   View,
-  Dimensions,
+  useWindowDimensions,
 } from 'react-native';
 import type { ITooltipState } from '../../hooks/useTooltip';
 import styles from './styles';
@@ -14,9 +14,6 @@ interface ITooltipProps {
   onClose: () => void;
 }
 
-/** 屏幕中间线，用于判断 tooltip 展示在上方还是下方 */
-const SCREEN_MID_Y = Dimensions.get('window').height / 2;
-
 /** tooltip 与触发元素的间距 */
 const TOOLTIP_GAP = 4;
 
@@ -25,23 +22,23 @@ const ESTIMATED_CELL_HEIGHT = 36;
 
 const Tooltip = ({ state, onClose }: ITooltipProps, _ref: unknown) => {
   const { visible, text, x, y } = state;
+  const { height: screenHeight } = useWindowDimensions();
 
-  const isAbove = y > SCREEN_MID_Y;
+  const screenMidY = screenHeight / 2;
+  const isAbove = y > screenMidY;
 
   const positionStyle = useMemo(() => {
     if (isAbove) {
-      // tooltip 展示在上方
       return {
         left: Math.max(4, x),
-        bottom: Dimensions.get('window').height - y + TOOLTIP_GAP,
+        bottom: screenHeight - y + TOOLTIP_GAP,
       };
     }
-    // tooltip 展示在下方
     return {
       left: Math.max(4, x),
       top: y + ESTIMATED_CELL_HEIGHT + TOOLTIP_GAP,
     };
-  }, [isAbove, x, y]);
+  }, [isAbove, x, y, screenHeight]);
 
   if (!visible) return null;
 

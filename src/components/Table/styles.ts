@@ -5,12 +5,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 200,
+    minHeight: 200,
   },
   content: {
     flex: 1,
     paddingVertical: 16,
-    backgroundColor: '#fff',
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,

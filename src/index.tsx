@@ -51,8 +51,15 @@ export type {
   IContextMenuConfig,
   IColumnVisibilityConfig,
   ISearchConfig,
+  ILocale,
 } from './types/index';
-export { useTableStatic, useTableState } from './context';
+export {
+  useTableStatic,
+  useTableState,
+  LocaleProvider,
+  useLocale,
+} from './context';
+export { zhCN, enUS } from './locale';
 import { SORT_STATUS_MAP } from './constant';
 
 const CoolTable = Object.assign(MainTable, {
