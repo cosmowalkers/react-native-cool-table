@@ -52,7 +52,7 @@ export const lightTheme: ITheme = {
   colors: {
     background: '#F8F9FE',
     surface: '#FFFFFF',
-    surfaceElevated: '#FFFFFF',
+    surfaceElevated: '#F1F3FB',
     text: '#1A1D2E',
     textSecondary: '#5C6078',
     textMuted: '#9CA3B8',

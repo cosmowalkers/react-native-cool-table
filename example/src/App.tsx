@@ -161,6 +161,13 @@ const SECTIONS: DemoSectionData[] = [
           '\u6392\u5E8F+\u56FA\u5B9A\u5217+SKU\u5C55\u5F00\u7684\u7EFC\u5408\u573A\u666F',
         icon: '\u25E8',
       },
+      {
+        id: 'treeLazyLoad',
+        title: '\u5F02\u6B65\u61D2\u52A0\u8F7D',
+        description:
+          '\u5C55\u5F00\u65F6\u5F02\u6B65\u62C9\u53D6\u5B50\u8282\u70B9\uFF0C\u5E76\u53D1/\u91CD\u590D\u5C55\u5F00\u81EA\u52A8\u53BB\u91CD',
+        icon: '\u21BB',
+      },
     ],
   },
   {
@@ -193,6 +200,20 @@ const SECTIONS: DemoSectionData[] = [
         description:
           '100~5000 \u6761\u4EA4\u6613\u8BB0\u5F55\u6027\u80FD\u6D4B\u8BD5',
         icon: '\u26A1',
+      },
+      {
+        id: 'contextMenu',
+        title: '\u957F\u6309\u83DC\u5355',
+        description:
+          '\u957F\u6309\u884C\u5524\u8D77\u4E0A\u4E0B\u6587\u64CD\u4F5C\u83DC\u5355\uFF0C\u83DC\u5355\u9879\u53EF\u6309\u884C\u6570\u636E\u52A8\u6001\u751F\u6210',
+        icon: '\u2630',
+      },
+      {
+        id: 'columnVisibility',
+        title: '\u5217\u663E\u9690',
+        description:
+          '\u52A8\u6001\u63A7\u5236\u5217\u7684\u663E\u793A\u4E0E\u9690\u85CF\uFF0C\u652F\u6301\u9501\u5B9A\u59CB\u7EC8\u53EF\u89C1\u5217',
+        icon: '\u25A6',
       },
     ],
   },

@@ -1,9 +1,8 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { Text, View, TouchableOpacity, StyleSheet } from 'react-native';
-import CoolTable from 'react-native-cool-table';
 import type { ITableColumn, ICoolTableRef } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
-import { commonStyles } from '../styles/commonStyles';
+import TableContainer from '../components/TableContainer';
 import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
@@ -32,9 +31,7 @@ const RADIO_COLUMNS: ITableColumn[] = [
 const CheckboxRadioDemo: React.FC = () => {
   const { theme } = useTheme();
   const { colors } = theme;
-  const tableRef = useRef<ICoolTableRef>(
-    null
-  ) as React.MutableRefObject<ICoolTableRef>;
+  const tableRef = useRef<ICoolTableRef>(null);
   const [selectedInfo, setSelectedInfo] = useState('未选择');
   const [radioInfo, setRadioInfo] = useState('未选择');
 
@@ -45,29 +42,11 @@ const CheckboxRadioDemo: React.FC = () => {
           fontSize: 16,
           fontWeight: '600',
           color: colors.text,
-          marginBottom: 8,
+          marginBottom: 4,
         },
         info: {
           fontSize: 13,
           color: colors.primary,
-          marginBottom: 8,
-        },
-        tableContainer: {
-          ...commonStyles.tableContainer,
-          backgroundColor: colors.surface,
-          shadowColor: colors.cardShadow,
-        },
-        table: {
-          backgroundColor: colors.surface,
-        },
-        row: {
-          ...commonStyles.row,
-          borderBottomColor: colors.rowBorder,
-        },
-        headerRow: {
-          ...commonStyles.headerRow,
-          backgroundColor: colors.headerBg,
-          borderBottomColor: colors.border,
         },
         btn: {
           backgroundColor: colors.primary,
@@ -91,78 +70,70 @@ const CheckboxRadioDemo: React.FC = () => {
       scrollable
     >
       {/* Checkbox */}
-      <View style={styles.section}>
+      <View style={styles.sectionHeader}>
         <Text style={dynamicStyles.sectionTitle}>Checkbox 多选</Text>
         <Text style={dynamicStyles.info}>{selectedInfo}</Text>
-        <View style={dynamicStyles.tableContainer}>
-          <CoolTable
-            ref={tableRef}
-            data={DATA}
-            columns={CHECKBOX_COLUMNS}
-            rowKey="id"
-            style={dynamicStyles.table}
-            rowStyle={dynamicStyles.row}
-            headerRowStyle={dynamicStyles.headerRow}
-            checkboxConfig={{
-              checkAll: true,
-              highlight: true,
-              onChange: ({ records }) => {
-                if (records.length === 0) {
-                  setSelectedInfo('未选择');
-                } else {
-                  setSelectedInfo(
-                    `已选 ${records.length} 件: ${records
-                      .map((r) => r.name)
-                      .join(', ')}`
-                  );
-                }
-              },
-            }}
-          />
-        </View>
-        <View style={styles.actions}>
-          <TouchableOpacity
-            style={dynamicStyles.btn}
-            onPress={() => tableRef.current?.clearCheckboxRow()}
-          >
-            <Text style={dynamicStyles.btnText}>清空选择</Text>
-          </TouchableOpacity>
-        </View>
+      </View>
+      <TableContainer
+        ref={tableRef}
+        data={DATA}
+        columns={CHECKBOX_COLUMNS}
+        rowKey="id"
+        checkboxConfig={{
+          checkAll: true,
+          highlight: true,
+          onChange: ({ records }) => {
+            if (records.length === 0) {
+              setSelectedInfo('未选择');
+            } else {
+              setSelectedInfo(
+                `已选 ${records.length} 件: ${records
+                  .map((r) => r.name)
+                  .join(', ')}`
+              );
+            }
+          },
+        }}
+      />
+      <View style={styles.actions}>
+        <TouchableOpacity
+          style={dynamicStyles.btn}
+          onPress={() => tableRef.current?.clearCheckboxRow()}
+        >
+          <Text style={dynamicStyles.btnText}>清空选择</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Radio */}
-      <View style={styles.section}>
+      <View style={styles.sectionHeader}>
         <Text style={dynamicStyles.sectionTitle}>Radio 单选</Text>
         <Text style={dynamicStyles.info}>{radioInfo}</Text>
-        <View style={dynamicStyles.tableContainer}>
-          <CoolTable
-            data={DATA}
-            columns={RADIO_COLUMNS}
-            rowKey="id"
-            style={dynamicStyles.table}
-            rowStyle={dynamicStyles.row}
-            headerRowStyle={dynamicStyles.headerRow}
-            radioConfig={{
-              highlight: true,
-              onChange: ({ row }) => {
-                setRadioInfo(row ? `已选: ${row.name}` : '未选择');
-              },
-            }}
-          />
-        </View>
       </View>
+      <TableContainer
+        data={DATA}
+        columns={RADIO_COLUMNS}
+        rowKey="id"
+        radioConfig={{
+          highlight: true,
+          onChange: ({ row }) => {
+            setRadioInfo(row ? `已选: ${row.name}` : '未选择');
+          },
+        }}
+      />
     </DemoLayout>
   );
 };
 
 const styles = StyleSheet.create({
-  section: {
-    margin: 16,
-    marginBottom: 8,
+  sectionHeader: {
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 4,
   },
   actions: {
     flexDirection: 'row',
-    marginTop: 8,
+    marginHorizontal: 16,
+    marginTop: 4,
   },
 });
 

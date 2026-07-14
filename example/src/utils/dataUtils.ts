@@ -175,10 +175,11 @@ export const generateSizeChart = (count: number) => {
   const sizes = ['S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
   return Array.from({ length: count }, (_, i) => {
     const base = randomInt(79, 299);
-    const data: any = {
-      id: i + 1,
-      name: clothingNames[i % clothingNames.length],
-    };
+    const data: { id: number; name: string; [size: string]: string | number } =
+      {
+        id: i + 1,
+        name: clothingNames[i % clothingNames.length],
+      };
     sizes.forEach((size, si) => {
       data[size] = randomInt(0, 100) > 15 ? base + si * randomInt(5, 20) : 0;
     });
@@ -204,6 +205,7 @@ export const generateAfterSales = (count: number) =>
     issue: randomChoice(issueTypes),
     date: randomDate(2025, 2025),
     status: randomChoice(afterSaleStatuses),
+    amount: randomInt(29, 3999),
   }));
 
 // ===== 7. 会员管理 (CustomRender) =====

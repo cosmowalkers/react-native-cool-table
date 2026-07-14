@@ -24,6 +24,7 @@ const PerformanceDemo: React.FC = () => {
   );
   const [dataSize, setDataSize] = useState(100);
   const [renderTime, setRenderTime] = useState<number | null>(null);
+  const [virtualEnabled, setVirtualEnabled] = useState(false);
   const startTimeRef = useRef<number>(0);
 
   const themedStyles = useMemo(
@@ -169,6 +170,23 @@ const PerformanceDemo: React.FC = () => {
           <Text style={themedStyles.timerValue}>渲染耗时: {renderTime}ms</Text>
         )}
       </View>
+      <TouchableOpacity
+        style={[
+          themedStyles.sizeButton,
+          styles.virtualToggle,
+          virtualEnabled && themedStyles.activeSizeButton,
+        ]}
+        onPress={() => setVirtualEnabled((v) => !v)}
+      >
+        <Text
+          style={[
+            themedStyles.sizeButtonText,
+            virtualEnabled && themedStyles.activeSizeButtonText,
+          ]}
+        >
+          {virtualEnabled ? '✓ ' : ''}虚拟化 (getItemLayout)
+        </Text>
+      </TouchableOpacity>
     </View>
   );
 
@@ -201,6 +219,17 @@ const PerformanceDemo: React.FC = () => {
         data={data}
         columns={columns}
         keyExtractor={(item) => String(item.id)}
+        virtualConfig={
+          virtualEnabled
+            ? {
+                enabled: true,
+                rowHeight: 48,
+                windowSize: 10,
+                initialNumToRender: 15,
+                maxToRenderPerBatch: 20,
+              }
+            : undefined
+        }
       />
       {tipsCard}
     </DemoLayout>
@@ -220,6 +249,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  virtualToggle: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
   },
 });
 

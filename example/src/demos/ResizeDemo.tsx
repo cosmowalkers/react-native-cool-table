@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { commonStyles } from '../styles/commonStyles';
+import { createThemedStyles } from '../styles/commonStyles';
 import { useTheme } from '../context/ThemeContext';
 
 const DATA = [
@@ -16,7 +16,6 @@ const DATA = [
 
 const ResizeDemo: React.FC = () => {
   const { theme } = useTheme();
-  const { colors } = theme;
   const [resizeInfo, setResizeInfo] = useState('');
 
   const columns: ITableColumn[] = useMemo(
@@ -29,24 +28,15 @@ const ResizeDemo: React.FC = () => {
     []
   );
 
-  const dynamicStyles = useMemo(
-    () =>
-      StyleSheet.create({
-        sortInfo: {
-          ...commonStyles.sortInfo,
-          color: colors.primary,
-        },
-      }),
-    [colors]
-  );
+  const themedStyles = useMemo(() => createThemedStyles(theme), [theme]);
 
   const extraInfo = useMemo(
     () => (
-      <Text style={dynamicStyles.sortInfo}>
+      <Text style={themedStyles.sortInfo}>
         {resizeInfo || '拖拽表头右边缘调整列宽'}
       </Text>
     ),
-    [resizeInfo, dynamicStyles]
+    [resizeInfo, themedStyles]
   );
 
   return (

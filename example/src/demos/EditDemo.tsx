@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react';
-import { Text, StyleSheet } from 'react-native';
+import { Text } from 'react-native';
 import type { ITableColumn } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
-import { commonStyles } from '../styles/commonStyles';
+import { createThemedStyles } from '../styles/commonStyles';
 import { useTheme } from '../context/ThemeContext';
 
 const INITIAL_DATA = [
@@ -35,26 +35,16 @@ const COLUMNS: ITableColumn[] = [
 
 const EditDemo: React.FC = () => {
   const { theme } = useTheme();
-  const { colors } = theme;
   const [editInfo, setEditInfo] = useState('');
 
-  const dynamicStyles = useMemo(
-    () =>
-      StyleSheet.create({
-        sortInfo: {
-          ...commonStyles.sortInfo,
-          color: colors.primary,
-        },
-      }),
-    [colors]
-  );
+  const themedStyles = useMemo(() => createThemedStyles(theme), [theme]);
 
   return (
     <DemoLayout
       title="单元格编辑"
-      description="单击单元格进入编辑模式，支持文本/数字/下拉选择"
+      description="单击单元格进入编辑模式，支持文本/数字/下拉选择（下拉需二次点击展开选项）"
       extraInfo={
-        <Text style={dynamicStyles.sortInfo}>
+        <Text style={themedStyles.sortInfo}>
           {editInfo || '单击可编辑的单元格进入编辑'}
         </Text>
       }

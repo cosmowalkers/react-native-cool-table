@@ -86,6 +86,15 @@ const RightFixedDemo: React.FC = () => {
         render: renderAfterSaleStatus,
       },
       {
+        key: 'amount',
+        title: '退款金额',
+        width: 100,
+        fixed: 'right',
+        align: 'right',
+        customVal: ({ val }) => `¥${Number(val).toLocaleString()}`,
+        textStyle: { fontWeight: 'bold', color: colors.error },
+      },
+      {
         key: 'actions',
         title: '操作',
         width: 110,
@@ -94,13 +103,13 @@ const RightFixedDemo: React.FC = () => {
         render: renderActions,
       },
     ],
-    [renderAfterSaleStatus, renderActions]
+    [renderAfterSaleStatus, renderActions, colors.error]
   );
 
   return (
     <DemoLayout
       title="售后工单"
-      description="工单号左固定，操作列右固定，中间区域可水平滚动"
+      description="工单号左固定，退款金额（右对齐）+ 操作列右固定，中间区域可水平滚动"
       scrollable
     >
       <TableContainer

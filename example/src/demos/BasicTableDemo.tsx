@@ -9,16 +9,7 @@ import { useTheme } from '../context/ThemeContext';
 const BasicTableDemo: React.FC = () => {
   const { theme } = useTheme();
   const themedRenders = useMemo(
-    () =>
-      createThemedRenderUtils({
-        text: theme.colors.text,
-        textSecondary: theme.colors.textSecondary,
-        textLight: theme.colors.textMuted,
-        primary: theme.colors.primary,
-        success: theme.colors.success,
-        warning: theme.colors.warning,
-        error: theme.colors.error,
-      }),
+    () => createThemedRenderUtils(theme.colors),
     [theme.colors]
   );
   const data = useMemo(() => generateProductList(15), []);

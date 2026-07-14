@@ -20,3 +20,6 @@ export { default as PaginationDemo } from './PaginationDemo';
 export { default as EllipsisDemo } from './EllipsisDemo';
 export { default as EditDemo } from './EditDemo';
 export { default as SearchDemo } from './SearchDemo';
+export { default as TreeLazyLoadDemo } from './TreeLazyLoadDemo';
+export { default as ContextMenuDemo } from './ContextMenuDemo';
+export { default as ColumnVisibilityDemo } from './ColumnVisibilityDemo';

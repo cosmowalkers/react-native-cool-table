@@ -1,6 +1,6 @@
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import type { ITableColumn } from 'react-native-cool-table';
+import React, { useCallback, useMemo, useRef } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import type { ITableColumn, ICoolTableRef } from 'react-native-cool-table';
 import DemoLayout from '../components/DemoLayout';
 import TableContainer from '../components/TableContainer';
 import { generateOrderList } from '../utils/dataUtils';
@@ -18,19 +18,18 @@ const orderStatusConfig: Record<string, { color: string; bgColor: string }> = {
 const ExpandableTableDemo: React.FC = () => {
   const { theme } = useTheme();
   const themedRenders = useMemo(
-    () =>
-      createThemedRenderUtils({
-        text: theme.colors.text,
-        textSecondary: theme.colors.textSecondary,
-        textLight: theme.colors.textMuted,
-        primary: theme.colors.primary,
-        success: theme.colors.success,
-        warning: theme.colors.warning,
-        error: theme.colors.error,
-      }),
+    () => createThemedRenderUtils(theme.colors),
     [theme.colors]
   );
   const data = useMemo(() => generateOrderList(8), []);
+  const tableRef = useRef<ICoolTableRef>(null);
+
+  const expandAll = useCallback(() => {
+    tableRef.current?.setAllRowExpand?.(true);
+  }, []);
+  const collapseAll = useCallback(() => {
+    tableRef.current?.setAllRowExpand?.(false);
+  }, []);
 
   const dynamicStyles = useMemo(
     () =>
@@ -76,6 +75,22 @@ const ExpandableTableDemo: React.FC = () => {
         emptyExpandText: {
           color: theme.colors.textMuted,
           fontSize: 14,
+        },
+        btnBar: {
+          flexDirection: 'row',
+          marginTop: 12,
+        },
+        btn: {
+          paddingHorizontal: 14,
+          paddingVertical: 6,
+          borderRadius: 8,
+          marginRight: 10,
+          backgroundColor: theme.colors.primaryLight,
+        },
+        btnText: {
+          fontSize: 13,
+          fontWeight: '600',
+          color: theme.colors.primary,
         },
       }),
     [theme]
@@ -127,6 +142,7 @@ const ExpandableTableDemo: React.FC = () => {
 
   const columns: ITableColumn[] = useMemo(
     () => [
+      { key: '__seq', title: '#', type: 'seq', width: 44 },
       {
         key: 'id',
         title: '订单号',
@@ -170,9 +186,20 @@ const ExpandableTableDemo: React.FC = () => {
   return (
     <DemoLayout
       title="订单列表"
-      description="点击订单行展开查看商品明细，包含规格、数量和小计"
+      description="点击订单行展开查看自定义商品明细面板；首列序号，展开箭头对齐订单号列"
+      extraInfo={
+        <View style={dynamicStyles.btnBar}>
+          <TouchableOpacity style={dynamicStyles.btn} onPress={expandAll}>
+            <Text style={dynamicStyles.btnText}>全部展开</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={dynamicStyles.btn} onPress={collapseAll}>
+            <Text style={dynamicStyles.btnText}>全部收起</Text>
+          </TouchableOpacity>
+        </View>
+      }
     >
       <TableContainer
+        ref={tableRef}
         data={data}
         columns={columns}
         treeConfig={treeConfig}

@@ -54,21 +54,40 @@ const CustomRenderDemo: React.FC = () => {
   const renderLevel = useCallback(
     (params: any) => {
       const { val } = params;
-      const levelConfig: Record<string, { color: string; bgColor: string }> = {
+      const levelConfig: Record<
+        string,
+        { color: string; bgColor: string; borderColor?: string }
+      > = {
         普通: { color: colors.textMuted, bgColor: colors.surfaceElevated },
         银卡: { color: colors.textSecondary, bgColor: colors.surfaceElevated },
         金卡: { color: '#d4b106', bgColor: 'rgba(212, 177, 6, 0.15)' },
-        黑卡: { color: '#fff', bgColor: '#262626' },
+        // 黑卡：黑底金字。暗色模式下加金色描边，避免与深色背景融为一体
+        黑卡: {
+          color: '#F5C542',
+          bgColor: theme.name === 'dark' ? '#000000' : '#262626',
+          borderColor: '#F5C542',
+        },
       };
       const config = levelConfig[val as string] ?? levelConfig['普通'];
 
       return (
-        <View style={[styles.levelBadge, { backgroundColor: config.bgColor }]}>
+        <View
+          style={[
+            styles.levelBadge,
+            { backgroundColor: config.bgColor },
+            config.borderColor
+              ? {
+                  borderWidth: StyleSheet.hairlineWidth,
+                  borderColor: config.borderColor,
+                }
+              : null,
+          ]}
+        >
           <Text style={[styles.levelText, { color: config.color }]}>{val}</Text>
         </View>
       );
     },
-    [colors]
+    [colors, theme.name]
   );
 
   const renderActions = useCallback(

@@ -10,7 +10,7 @@ const defaultColors = {
   error: '#EF4444',
   text: '#1A1D2E',
   textSecondary: '#5C6078',
-  textLight: '#9CA3B8',
+  textMuted: '#9CA3B8',
 };
 
 export type TRenderColors = typeof defaultColors;
@@ -235,7 +235,7 @@ export function createThemedRenderUtils(c: Partial<TRenderColors> = {}) {
           </View>
         ))}
         {tags.length > maxShow && (
-          <Text style={[styles.moreTagsText, { color: colors.textLight }]}>
+          <Text style={[styles.moreTagsText, { color: colors.textMuted }]}>
             +{tags.length - maxShow}
           </Text>
         )}

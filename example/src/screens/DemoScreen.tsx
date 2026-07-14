@@ -2,6 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import type { StackScreenProps } from '@react-navigation/stack';
 import type { RootStackParamList } from '../navigation/types';
+import { useTheme } from '../context/ThemeContext';
 
 import BasicTableDemo from '../demos/BasicTableDemo';
 import SortableTableDemo from '../demos/SortableTableDemo';
@@ -25,6 +26,9 @@ import PaginationDemo from '../demos/PaginationDemo';
 import EllipsisDemo from '../demos/EllipsisDemo';
 import EditDemo from '../demos/EditDemo';
 import SearchDemo from '../demos/SearchDemo';
+import TreeLazyLoadDemo from '../demos/TreeLazyLoadDemo';
+import ContextMenuDemo from '../demos/ContextMenuDemo';
+import ColumnVisibilityDemo from '../demos/ColumnVisibilityDemo';
 
 const DEMO_COMPONENTS: Record<string, React.ComponentType<any>> = {
   basic: BasicTableDemo,
@@ -49,16 +53,22 @@ const DEMO_COMPONENTS: Record<string, React.ComponentType<any>> = {
   ellipsis: EllipsisDemo,
   edit: EditDemo,
   search: SearchDemo,
+  treeLazyLoad: TreeLazyLoadDemo,
+  contextMenu: ContextMenuDemo,
+  columnVisibility: ColumnVisibilityDemo,
 };
 
 type DemoScreenProps = StackScreenProps<RootStackParamList, 'Demo'>;
 
 const DemoScreen: React.FC<DemoScreenProps> = ({ route }) => {
   const { demoId } = route.params;
+  const { theme } = useTheme();
   const DemoComponent = DEMO_COMPONENTS[demoId] ?? BasicTableDemo;
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <DemoComponent />
     </View>
   );

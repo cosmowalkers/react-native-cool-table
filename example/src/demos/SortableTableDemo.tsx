@@ -12,16 +12,7 @@ const SortableTableDemo: React.FC = () => {
   const { theme } = useTheme();
   const themedStyles = useMemo(() => createThemedStyles(theme), [theme]);
   const themedRenders = useMemo(
-    () =>
-      createThemedRenderUtils({
-        text: theme.colors.text,
-        textSecondary: theme.colors.textSecondary,
-        textLight: theme.colors.textMuted,
-        primary: theme.colors.primary,
-        success: theme.colors.success,
-        warning: theme.colors.warning,
-        error: theme.colors.error,
-      }),
+    () => createThemedRenderUtils(theme.colors),
     [theme.colors]
   );
   const [data, setData] = useState(() => generateTransactions(15));

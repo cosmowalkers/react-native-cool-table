@@ -191,18 +191,3 @@ export function createThemedStyles(theme: ITheme) {
     },
   });
 }
-
-// Re-export colors for backward compatibility during migration
-// Demos will progressively switch to useTheme()
-export const colors = {
-  primary: '#6366F1',
-  success: '#10B981',
-  warning: '#F59E0B',
-  error: '#EF4444',
-  text: '#1A1D2E',
-  textSecondary: '#5C6078',
-  textLight: '#9CA3B8',
-  border: '#E8EAF0',
-  background: '#F8F9FE',
-  white: '#FFFFFF',
-};
