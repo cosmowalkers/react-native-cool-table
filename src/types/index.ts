@@ -1,4 +1,4 @@
-import type { MutableRefObject, ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import type {
   StyleProp,
   TextStyle,
@@ -257,6 +257,8 @@ export interface ITableCellProps
   onExpandChange?: () => void;
   /** 行的唯一 key（用于 checkbox/radio 状态匹配） */
   rowKeyValue?: string;
+  /** 是否为第一个数据列（排除 checkbox/radio/seq/drag 列） */
+  isFirstDataCol?: boolean;
 }
 
 export interface ITableColumnParams {
@@ -571,6 +573,15 @@ export interface ITableStateContextValue {
   editValues?: Map<string, unknown>;
   /** 设置编辑值 */
   setEditValue?: (key: string, value: unknown) => void;
+  /** 保存编辑（跑校验、触发 onEditSave、清理并退出编辑态） */
+  saveEdit?: (params: {
+    row: TItem;
+    column: ITableColumn;
+    value: unknown;
+    oldValue: unknown;
+  }) => Promise<boolean>;
+  /** 取消编辑（清理编辑值、触发 onEditCancel、退出编辑态） */
+  cancelEdit?: () => void;
   /** 校验错误列表 */
   validationErrors?: IValidationError[];
   /** 异步加载中的行 key 集合 */
@@ -705,6 +716,8 @@ export interface IHeaderCell {
   colSpan: number;
   rowSpan: number;
   isLeaf: boolean;
+  /** 该表头单元格覆盖的第一个叶子列在 leafColumns 中的下标（跨层唯一） */
+  leafIndex: number;
 }
 
 export type THeaderLevel = IHeaderCell[];
@@ -942,7 +955,7 @@ export interface ILocale {
 // ============================================================
 
 export type ITableComponentType = ((
-  props: ITableProps & { ref?: MutableRefObject<ICoolTableRef> }
+  props: ITableProps & { ref?: React.Ref<ICoolTableRef> }
 ) => JSX.Element) & {
   Cell: React.MemoExoticComponent<
     React.ForwardRefExoticComponent<ITableCellProps & React.RefAttributes<any>>

@@ -37,8 +37,11 @@ const useFilter = ({
   const onFilterChangeRef = useRef(onFilterChange);
   onFilterChangeRef.current = onFilterChange;
 
+  const lastChangedColumnKeyRef = useRef<string | null>(null);
+
   const setFilterState = useCallback(
     (columnKey: string, values: (string | number | boolean)[]) => {
+      lastChangedColumnKeyRef.current = columnKey;
       setFilterStates((prev) => {
         const next = prev.filter((f) => f.columnKey !== columnKey);
         if (values.length > 0) {
@@ -51,6 +54,7 @@ const useFilter = ({
   );
 
   const clearFilterState = useCallback((columnKey?: string) => {
+    lastChangedColumnKeyRef.current = columnKey ?? null;
     if (columnKey) {
       setFilterStates((prev) => prev.filter((f) => f.columnKey !== columnKey));
     } else {
@@ -60,12 +64,19 @@ const useFilter = ({
 
   // Filter change callback
   useUpdateEffect(() => {
-    if (filterStates.length === 0) return;
-    const lastFilter = filterStates[filterStates.length - 1];
-    if (lastFilter && onFilterChangeRef.current) {
-      const column = columns.find((c) => c.key === lastFilter.columnKey);
+    if (!onFilterChangeRef.current) return;
+    const changedKey = lastChangedColumnKeyRef.current;
+    if (changedKey) {
+      const column = columns.find((c) => c.key === changedKey);
       if (column) {
         onFilterChangeRef.current({ filters: filterStates, column });
+      }
+    } else if (filterStates.length === 0) {
+      // clearFilterState() was called without a specific column (clear all)
+      // Use the first column as a fallback since all filters were cleared
+      const firstCol = columns[0];
+      if (firstCol) {
+        onFilterChangeRef.current({ filters: [], column: firstCol });
       }
     }
   }, [filterStates]);

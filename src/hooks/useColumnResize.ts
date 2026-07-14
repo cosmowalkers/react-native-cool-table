@@ -53,6 +53,9 @@ export const useColumnResize = ({
     });
   }, [columns, enabled]);
 
+  const pendingResizeRef = useRef<{ key: string; width: number } | null>(null);
+  const isUserResizeRef = useRef(false);
+
   const setColumnWidth = useCallback(
     (key: string, width: number) => {
       if (!enabled) return;
@@ -68,25 +71,36 @@ export const useColumnResize = ({
         clamped = maxWidth;
       }
 
-      let changed = false;
+      isUserResizeRef.current = true;
+      pendingResizeRef.current = { key, width: clamped };
       setColumnWidths((prev) => {
-        if (prev.get(key) === clamped) return prev;
+        if (prev.get(key) === clamped) {
+          pendingResizeRef.current = null;
+          return prev;
+        }
         const next = new Map(prev);
         next.set(key, clamped);
-        changed = true;
         return next;
       });
-
-      // Fire onResizeEnd callback only when width actually changed
-      if (changed && config?.onResizeEnd) {
-        const column = columnsRef.current.find((c) => c.key === key);
-        if (column) {
-          config.onResizeEnd({ column, width: clamped });
-        }
-      }
     },
     [enabled]
   );
+
+  // Fire onResizeEnd after state has committed
+  useEffect(() => {
+    const pending = pendingResizeRef.current;
+    if (!pending || !isUserResizeRef.current) return;
+    isUserResizeRef.current = false;
+    pendingResizeRef.current = null;
+
+    const config = resizeConfigRef.current;
+    if (config?.onResizeEnd) {
+      const column = columnsRef.current.find((c) => c.key === pending.key);
+      if (column) {
+        config.onResizeEnd({ column, width: pending.width });
+      }
+    }
+  }, [columnWidths]);
 
   const getColumnWidths = useCallback(() => columnWidths, [columnWidths]);
 

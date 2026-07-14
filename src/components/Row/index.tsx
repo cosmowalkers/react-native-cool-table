@@ -62,6 +62,7 @@ const Row = (
     isCellVisible,
     loadingKeys,
     triggerLoad,
+    isLoaded,
     getChildren: getLazyChildren,
   } = useTableState();
 
@@ -168,10 +169,12 @@ const Row = (
     );
 
     // If loadChildren is configured and there are no static children, trigger lazy load
+    // 已加载过的行不再重复请求（子节点缓存在 hook 的 childrenMap 中）
     if (
       isFunction(treeConfig?.loadChildren) &&
       isEmpty(data?.children) &&
-      triggerLoad
+      triggerLoad &&
+      !(isLoaded && isLoaded(rowKeyValue))
     ) {
       triggerLoad(rowKeyValue, data, rowIndex);
     }
@@ -185,6 +188,7 @@ const Row = (
     data,
     rowIndex,
     triggerLoad,
+    isLoaded,
   ]);
 
   // === Cached right-fixed column translateX ===
@@ -198,6 +202,18 @@ const Row = (
     if (rightFixedWidth === 0) return null;
     return Animated.add(positionX, contentWidth - rightFixedWidth);
   }, [columns, positionX, contentWidth, columnWidths]);
+
+  const firstDataColIndex = useMemo(
+    () =>
+      columns.findIndex(
+        (c) =>
+          c.type !== 'checkbox' &&
+          c.type !== 'radio' &&
+          c.type !== 'seq' &&
+          c.type !== 'drag'
+      ),
+    [columns]
+  );
 
   const renderColumns = useCallback(() => {
     if (!isArray(columns) || isEmpty(columns)) return null;
@@ -228,6 +244,7 @@ const Row = (
         rowIndex,
         colIndex,
         isHeader,
+        isFirstDataCol: colIndex === firstDataColIndex,
       };
 
       const isFirst = colIndex === 0;
@@ -309,7 +326,9 @@ const Row = (
           expanded={expanded}
           rowKeyValue={rowKeyValue}
           style={
-            depth > 1 && colIndex === 0 ? { paddingLeft: 8 * (depth - 1) } : {}
+            depth > 1 && colIndex === firstDataColIndex
+              ? { paddingLeft: 8 * (depth - 1) }
+              : {}
           }
           {...commonParams}
         />
@@ -380,6 +399,7 @@ const Row = (
     getCellSpan,
     isCellVisible,
     tableCellStyle,
+    firstDataColIndex,
   ]);
 
   const renderSeparator = () => {

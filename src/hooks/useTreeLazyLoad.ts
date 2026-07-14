@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { isFunction } from 'lodash';
 import type { TExpandable, TItem } from '../types';
 
@@ -28,9 +28,23 @@ export const useTreeLazyLoad = ({
     new Map()
   );
 
-  // Use ref to access latest treeConfig in callbacks without re-creating them
+  // Use refs to access latest values in callbacks without re-creating them
   const treeConfigRef = useRef(treeConfig);
   treeConfigRef.current = treeConfig;
+
+  const loadedKeysRef = useRef(loadedKeys);
+  loadedKeysRef.current = loadedKeys;
+
+  // 正在加载中的 key（同步镜像，用于 in-flight 去重，不受 setState 异步影响）
+  const inflightKeysRef = useRef<Set<string>>(new Set());
+
+  // 卸载守卫：避免异步 loadChildren resolve 后对已卸载组件 setState
+  const mountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const triggerLoad = useCallback(
     async (rowKey: string, row: TItem, rowIndex: number): Promise<void> => {
@@ -40,9 +54,15 @@ export const useTreeLazyLoad = ({
       }
 
       // If cacheChildren is true and already loaded, skip
-      if (config.cacheChildren && loadedKeys.has(rowKey)) {
+      if (config.cacheChildren && loadedKeysRef.current.has(rowKey)) {
         return;
       }
+
+      // In-flight 去重：同一行正在加载时忽略重复触发（与 cacheChildren 无关）
+      if (inflightKeysRef.current.has(rowKey)) {
+        return;
+      }
+      inflightKeysRef.current.add(rowKey);
 
       // Set loading
       setLoadingKeys((prev) => {
@@ -53,6 +73,9 @@ export const useTreeLazyLoad = ({
 
       try {
         const children = await config.loadChildren({ row, rowIndex });
+
+        // 组件已卸载则不再更新状态
+        if (!mountedRef.current) return;
 
         // Store children and mark as loaded
         setChildrenMap((prev) => {
@@ -78,15 +101,18 @@ export const useTreeLazyLoad = ({
           );
         }
       } finally {
-        // Remove from loading
-        setLoadingKeys((prev) => {
-          const next = new Set(prev);
-          next.delete(rowKey);
-          return next;
-        });
+        inflightKeysRef.current.delete(rowKey);
+        // Remove from loading（组件已卸载则跳过）
+        if (mountedRef.current) {
+          setLoadingKeys((prev) => {
+            const next = new Set(prev);
+            next.delete(rowKey);
+            return next;
+          });
+        }
       }
     },
-    [loadedKeys]
+    []
   );
 
   const isLoading = useCallback(

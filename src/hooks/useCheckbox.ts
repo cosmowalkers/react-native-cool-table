@@ -82,9 +82,11 @@ const useCheckbox = ({
       );
       const allChecked = allKeys.every((k) => prev.has(k));
       if (allChecked) {
-        return new Set();
+        const next = new Set(prev);
+        allKeys.forEach((k) => next.delete(k));
+        return next;
       }
-      return new Set(allKeys);
+      return new Set([...prev, ...allKeys]);
     });
   }, [checkableData, rowKey]);
 
@@ -103,8 +105,12 @@ const useCheckbox = ({
 
   const isIndeterminate = useMemo(() => {
     if (checkedKeys.size === 0) return false;
-    return !isCheckedAll && checkedKeys.size > 0;
-  }, [checkedKeys, isCheckedAll]);
+    if (isCheckedAll) return false;
+    const dataKeys = checkableData.map((item, idx) =>
+      buildRowKey(rowKey, item, idx)
+    );
+    return dataKeys.some((k) => checkedKeys.has(k));
+  }, [checkedKeys, isCheckedAll, checkableData, rowKey]);
 
   return {
     checkedKeys,

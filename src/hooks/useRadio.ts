@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { isNil } from 'lodash';
 import type { IRadioConfig, ITableProps, TItem } from '../types';
 import { buildRowKey } from '../utils';
 import useUpdateEffect from './useUpdateEffect';
@@ -25,11 +24,16 @@ const useRadio = ({
   );
 
   // Sync controlled radio key
+  // 用「是否受控」标志 + 受控值共同作为依赖：
+  // 避免依赖整个 radioConfig 对象导致过度触发，同时保证
+  // radioConfig 从 undefined 切换到受控对象时同步仍会执行
+  const isControlled = radioConfig != null && 'checkedRowKey' in radioConfig;
+  const controlledRadioKey = radioConfig?.checkedRowKey;
   useEffect(() => {
-    if (!isNil(radioConfig?.checkedRowKey)) {
-      setRadioKey(radioConfig!.checkedRowKey!);
+    if (isControlled) {
+      setRadioKey(controlledRadioKey ?? null);
     }
-  }, [radioConfig]);
+  }, [isControlled, controlledRadioKey]);
 
   const onChangeRef = useRef(radioConfig?.onChange);
   onChangeRef.current = radioConfig?.onChange;

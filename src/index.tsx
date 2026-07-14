@@ -11,6 +11,7 @@ export type {
   ITableColumn,
   ITableColumnParams,
   ITableRowProps,
+  TItem,
   TSortType,
   TSortState,
   TSortItem,

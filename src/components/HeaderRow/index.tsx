@@ -48,21 +48,16 @@ const HeaderRow = (
    */
   const renderLevel = useCallback(
     (level: THeaderLevel, levelIndex: number) => {
-      let leafIdx = 0;
-
-      // 计算本层之前所有层级已消费的 leaf 偏移量
-      // 但实际上 getHeaderLevels 的输出顺序就是按 leaf column 顺序排列的
-      // 所以直接维护一个 running index 即可
-
       return (
         <View
           key={`header-level-${levelIndex}`}
           style={[styles.headerRow, headerRowStyle]}
         >
           {level.map((headerCell, cellIndex) => {
-            const { column, colSpan, isLeaf } = headerCell;
-            const startLeafIdx = leafIdx;
-            leafIdx += colSpan;
+            const { column, colSpan, isLeaf, leafIndex } = headerCell;
+            // 使用 getHeaderLevels 预计算的全局叶子起始下标，
+            // 避免按层重置计数导致下层表头取错列宽/固定列
+            const startLeafIdx = leafIndex;
 
             // 计算宽度：覆盖的 leaf columns 的宽度之和（优先使用动态列宽）
             const coveredLeafs = leafColumns.slice(

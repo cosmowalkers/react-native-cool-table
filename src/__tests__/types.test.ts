@@ -71,6 +71,7 @@ assertType<IHeaderCell>({
   colSpan: 1,
   rowSpan: 1,
   isLeaf: true,
+  leafIndex: 0,
 });
 assertType<THeaderLevel>([]);
 

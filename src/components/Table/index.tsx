@@ -23,12 +23,7 @@ import type { LayoutChangeEvent } from 'react-native';
 
 import styles from './styles';
 import Empty from '../Empty';
-import type {
-  ITableProps,
-  TItem,
-  ITableColumn,
-  ICoolTableRef,
-} from '../../types';
+import type { ITableProps, TItem, ICoolTableRef } from '../../types';
 import { isFunction } from 'lodash';
 import Row from '../Row';
 import HeaderRow from '../HeaderRow';
@@ -115,7 +110,6 @@ const Table = (
   }: ITableProps,
   ref: any
 ) => {
-  const [_columns, setColumns] = useState<ITableColumn[]>(columns);
   const [contentWidth, setContentWidth] = useState(0);
   const [positionX] = useState(new Animated.Value(0));
   const flatListRef = useRef<FlatList>(null);
@@ -151,6 +145,17 @@ const Table = (
     resizeConfig,
     columns: leafColumns,
   });
+
+  // === Column ordering (fixed left → normal → fixed right) ===
+  // 使用 leafColumns（扁平化后的叶子列），因为 Row/Cell 只需要叶子列
+  const _columns = useMemo(() => {
+    const fixedLeft = leafColumns.filter(
+      (c) => c.fixed === true || c.fixed === 'left'
+    );
+    const fixedRight = leafColumns.filter((c) => c.fixed === 'right');
+    const normal = leafColumns.filter((c) => !c.fixed);
+    return [...fixedLeft, ...normal, ...fixedRight];
+  }, [leafColumns]);
 
   // === Sort ===
   const { sortState, setSortState, multiSortState, setMultiSortState } =
@@ -219,6 +224,7 @@ const Table = (
     setEditingCell,
     editValues,
     setEditValue,
+    saveEdit: editSaveEdit,
     cancelEdit: editCancelEdit,
   } = useEditableCell({ editConfig, data, columns: _columns, rowKey });
 
@@ -251,19 +257,6 @@ const Table = (
       setCurrentRowKey(rowConfig.currentRowKey ?? null);
     }
   }, [rowConfig?.currentRowKey]);
-
-  // === Column ordering (fixed left → normal → fixed right) ===
-  // 使用 leafColumns（扁平化后的叶子列），因为 Row/Cell 只需要叶子列
-  useEffect(() => {
-    setColumns(() => {
-      const fixedLeft = leafColumns.filter(
-        (c) => c.fixed === true || c.fixed === 'left'
-      );
-      const fixedRight = leafColumns.filter((c) => c.fixed === 'right');
-      const normal = leafColumns.filter((c) => !c.fixed);
-      return [...fixedLeft, ...normal, ...fixedRight];
-    });
-  }, [leafColumns]);
 
   // === Expand ===
   const toggleExpand = useCallback(
@@ -377,6 +370,8 @@ const Table = (
     setEditingCell,
     editValues,
     setEditValue,
+    saveEdit: editSaveEdit,
+    cancelEdit: editCancelEdit,
     validationErrors,
     showContextMenu,
     hideContextMenu,
@@ -404,7 +399,22 @@ const Table = (
   const _setAllRowExpand = useCallback(
     (expanded: boolean) => {
       if (expanded) {
-        const allKeys = data.map((item, idx) => buildRowKey(rowKey, item, idx));
+        const allKeys: string[] = [];
+        // 键规则必须与 Row 保持一致：
+        // 根行用 buildRowKey，子行用 `${parentKey}.${childIdx}`（见 Row.renderChildRow）
+        const collectKeys = (items: TItem[], parentKey?: string) => {
+          items.forEach((item, idx) => {
+            const key =
+              parentKey === undefined
+                ? buildRowKey(rowKey, item, idx)
+                : `${parentKey}.${idx}`;
+            allKeys.push(key);
+            if (item.children?.length) {
+              collectKeys(item.children, key);
+            }
+          });
+        };
+        collectKeys(data);
         setExpandedKeys(new Set(allKeys));
       } else {
         setExpandedKeys(new Set());
@@ -757,6 +767,7 @@ const Table = (
               showsHorizontalScrollIndicator={false}
               nestedScrollEnabled
               onScroll={onScroll}
+              scrollEventThrottle={16}
             >
               <View>
                 {paginatedData?.length ? (

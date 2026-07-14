@@ -113,6 +113,13 @@ interface IStateParams {
   setEditingCell: (cell: { rowKey: string; columnKey: string } | null) => void;
   editValues: Map<string, unknown>;
   setEditValue: (key: string, value: unknown) => void;
+  saveEdit: (params: {
+    row: TItem;
+    column: ITableColumn;
+    value: unknown;
+    oldValue: unknown;
+  }) => Promise<boolean>;
+  cancelEdit: () => void;
   validationErrors: IValidationError[];
   showContextMenu: (params: {
     row: TItem;
@@ -248,6 +255,8 @@ export const useTableContextValues = (
       setEditingCell: params.setEditingCell,
       editValues: params.editValues,
       setEditValue: params.setEditValue,
+      saveEdit: params.saveEdit,
+      cancelEdit: params.cancelEdit,
       validationErrors: params.validationErrors,
       showContextMenu: params.showContextMenu,
       hideContextMenu: params.hideContextMenu,
@@ -292,6 +301,8 @@ export const useTableContextValues = (
       params.setEditingCell,
       params.editValues,
       params.setEditValue,
+      params.saveEdit,
+      params.cancelEdit,
       params.validationErrors,
       params.showContextMenu,
       params.hideContextMenu,

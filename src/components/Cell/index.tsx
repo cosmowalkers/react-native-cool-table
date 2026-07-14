@@ -40,6 +40,7 @@ const Cell = (
     expanded,
     style,
     rowKeyValue,
+    isFirstDataCol,
   }: ITableCellProps,
   _ref: any
 ) => {
@@ -98,6 +99,8 @@ const Cell = (
     setEditingCell,
     editValues,
     setEditValue,
+    saveEdit,
+    cancelEdit,
     validationErrors,
   } = useTableState();
 
@@ -114,8 +117,10 @@ const Cell = (
   const hasLazyLoad = isFunction(treeConfig?.loadChildren);
   const isShowExpand = useMemo(
     () =>
-      (!!row.children?.length || hasLazyLoad) && !isHeader && colIndex === 0,
-    [row.children, hasLazyLoad, isHeader, colIndex]
+      (!!row.children?.length || hasLazyLoad) &&
+      !isHeader &&
+      (isFirstDataCol ?? colIndex === 0),
+    [row.children, hasLazyLoad, isHeader, isFirstDataCol, colIndex]
   );
   const isRowLoading = loadingKeys
     ? loadingKeys.has(rowKeyValue ?? String(rowIndex))
@@ -204,14 +209,26 @@ const Cell = (
 
   const _onEditSave = useCallback(
     (newValue: unknown) => {
+      // 优先走 hook 的 saveEdit：跑校验 → 触发 onEditSave → 清理 editValues → 退出编辑态
+      if (isFunction(saveEdit)) {
+        saveEdit({ row, column: col, value: newValue, oldValue: val });
+        return;
+      }
+      // 回退：至少写入编辑值并退出编辑态，避免卡在编辑态
       setEditValue?.(editKey, newValue);
+      setEditingCell?.(null);
     },
-    [editKey, setEditValue]
+    [saveEdit, row, col, val, editKey, setEditValue, setEditingCell]
   );
 
   const _onEditCancel = useCallback(() => {
+    // 优先走 hook 的 cancelEdit：清理 editValues 僵尸条目 + 触发 onEditCancel
+    if (isFunction(cancelEdit)) {
+      cancelEdit();
+      return;
+    }
     setEditingCell?.(null);
-  }, [setEditingCell]);
+  }, [cancelEdit, setEditingCell]);
 
   const _onPress = useCallback(() => {
     if (isCheckboxType) {
@@ -467,7 +484,11 @@ const Cell = (
     const ellipsisLines = effectiveEllipsis?.numberOfLines ?? undefined;
     return vals.map((item, index) => {
       const textVal = String(item);
-      const textAlign = fixed ? ('left' as const) : ('right' as const);
+      // 仅左固定列强制左对齐；右固定/普通列尊重 col.align（与 Row 容器对齐逻辑一致）
+      const isFixedLeftCol = fixed === true || fixed === 'left';
+      const textAlign = isFixedLeftCol
+        ? ('left' as const)
+        : col.align ?? 'left';
       const cellStyle = [
         styles.text,
         {

@@ -92,6 +92,8 @@ const EditTextInput = ({
 }: IEditTextInputProps) => {
   const [text, setText] = useState(String(value ?? ''));
   const inputRef = useRef<TextInput>(null);
+  // 防止 onSubmitEditing 后紧接着的 onBlur 二次触发 onSave
+  const savedRef = useRef(false);
 
   useEffect(() => {
     // Auto-focus on mount
@@ -102,10 +104,12 @@ const EditTextInput = ({
   }, []);
 
   const _onBlur = useCallback(() => {
+    if (savedRef.current) return;
     onSave(keyboardType === 'numeric' ? Number(text) : text);
   }, [text, onSave, keyboardType]);
 
   const _onSubmitEditing = useCallback(() => {
+    savedRef.current = true;
     onSave(keyboardType === 'numeric' ? Number(text) : text);
   }, [text, onSave, keyboardType]);
 

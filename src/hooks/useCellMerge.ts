@@ -46,6 +46,12 @@ export const useCellMerge = ({
           colIndex,
         });
 
+        if (__DEV__ && result.rowspan > 1) {
+          console.warn(
+            '[CoolTable] spanMethod returned rowspan > 1, but rowspan is not implemented. Only colspan is supported.'
+          );
+        }
+
         // colspan=0 表示隐藏该单元格（与 vxe-table 行为一致）
         if (result.colspan === 0) {
           hidden.add(key);

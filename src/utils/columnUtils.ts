@@ -71,6 +71,10 @@ export function getHeaderLevels(columns: ITableColumn[]): THeaderLevel[] {
     levels.push([]);
   }
 
+  // 全局叶子列游标：DFS 到达每个叶子时递增，保证每个 header cell 记录到
+  // 与 leafColumns 顺序一致的起始索引（跨层唯一，不随层级重置）
+  let leafCursor = 0;
+
   function traverse(cols: ITableColumn[], depth: number): void {
     for (const col of cols) {
       const isLeaf = !col.children || col.children.length === 0;
@@ -80,11 +84,15 @@ export function getHeaderLevels(columns: ITableColumn[]): THeaderLevel[] {
         colSpan: isLeaf ? 1 : getLeafCount(col),
         rowSpan: isLeaf ? maxDepth - depth : 1,
         isLeaf,
+        // 该 cell 覆盖的第一个叶子列在 leafColumns 中的下标
+        leafIndex: leafCursor,
       };
 
       levels[depth].push(cell);
 
-      if (!isLeaf && col.children) {
+      if (isLeaf) {
+        leafCursor += 1;
+      } else if (col.children) {
         traverse(col.children, depth + 1);
       }
     }
