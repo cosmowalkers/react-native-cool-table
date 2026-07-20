@@ -303,7 +303,8 @@ const Row = (
         }
         mergedWidth = totalWidth > 0 ? totalWidth : undefined;
       } else {
-        mergedWidth = columnWidths?.get(column.key) ?? (width as DimensionValue);
+        mergedWidth =
+          columnWidths?.get(column.key) ?? (width as DimensionValue);
       }
       if (mergedWidth) _cellStyle.push({ width: mergedWidth });
       if (alignRes) _cellStyle.push({ alignItems: alignRes });
