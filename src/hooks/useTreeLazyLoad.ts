@@ -41,6 +41,7 @@ export const useTreeLazyLoad = ({
   // 卸载守卫：避免异步 loadChildren resolve 后对已卸载组件 setState
   const mountedRef = useRef(true);
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
       mountedRef.current = false;
     };

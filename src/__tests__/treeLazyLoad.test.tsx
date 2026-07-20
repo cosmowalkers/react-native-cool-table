@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { renderHook, render, act } from '@testing-library/react-native';
 import { useTreeLazyLoad } from '../hooks/useTreeLazyLoad';
 import CoolTable from '../index';
@@ -160,6 +161,34 @@ describe('useTreeLazyLoad', () => {
     // No crash, nothing loaded
     expect(result.current.isLoading('1')).toBe(false);
     expect(result.current.isLoaded('1')).toBe(false);
+  });
+
+  it('should still load children after StrictMode remount (React 18 regression)', async () => {
+    // React 18 StrictMode 在 development 模式下对同一 fiber 执行：
+    //   mount (effect body) → cleanup (mountedRef=false) → remount (effect body 重新运行)
+    // 若 remount 时 effect body 未重置 mountedRef=true，loadChildren resolve 后
+    // mountedRef.current 仍为 false，setState 被跳过，children 不更新。
+    //
+    // 修复：在 useEffect body 开头加 `mountedRef.current = true`，
+    // 保证 remount 时无论 cleanup 是否已运行，mountedRef 都能被正确恢复。
+    //
+    // NOTE: react-test-renderer 不实现 StrictMode double-invoke，
+    // 本测试在 StrictMode wrapper 下验证基本功能，确保修复不引入副作用。
+    // 真实 bug 在 React 18 DOM/RN 运行时 development 模式下可复现。
+    const loadChildren = jest.fn().mockResolvedValue(CHILD_DATA);
+    const treeConfig: TExpandable = { loadChildren, cacheChildren: true };
+
+    const { result } = renderHook(() => useTreeLazyLoad({ treeConfig }), {
+      wrapper: ({ children }) => <StrictMode>{children}</StrictMode>,
+    });
+
+    await act(async () => {
+      await result.current.triggerLoad('1', TEST_DATA[0]!, 0);
+    });
+
+    expect(result.current.isLoaded('1')).toBe(true);
+    expect(result.current.getChildren('1')).toEqual(CHILD_DATA);
+    expect(result.current.isLoading('1')).toBe(false);
   });
 
   it('should handle multiple concurrent loads for different keys', async () => {
