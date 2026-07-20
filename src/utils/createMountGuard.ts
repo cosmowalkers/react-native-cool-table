@@ -6,10 +6,10 @@
  * 之后守卫能正确恢复为 active 状态。
  *
  * 用法（在 useEffect 里）：
- *   const guard = useRef(createMountGuard()).current;
+ *   const guardRef = useRef(createMountGuard());
  *   useEffect(() => {
- *     guard.reactivate();
- *     return () => { guard.deactivate(); };
+ *     guardRef.current.reactivate();
+ *     return () => { guardRef.current.deactivate(); };
  *   }, []);
  *
  * BUG 历史：早期实现用 `mountedRef = useRef(true)` + effect cleanup 置 false，
