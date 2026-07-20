@@ -116,8 +116,8 @@ const HeaderRow = (
                 column.type === 'seq'
                   ? column.title || '#'
                   : column.type === 'checkbox' || column.type === 'radio'
-                  ? ''
-                  : column.title;
+                    ? ''
+                    : column.title;
 
               const commonParams = {
                 col: column,
@@ -131,7 +131,7 @@ const HeaderRow = (
                 ALIGN_MAP[
                   isFixedLeft(column.fixed) || cellIndex === 0
                     ? 'left'
-                    : column.align ?? 'right'
+                    : (column.align ?? 'right')
                 ];
               if (alignRes) {
                 baseCellStyle.push({ alignItems: alignRes });

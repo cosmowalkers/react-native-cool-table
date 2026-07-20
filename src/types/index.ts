@@ -251,8 +251,7 @@ export type TExpandable = {
 };
 
 export interface ITableCellProps
-  extends Omit<ITableColumnParams, 'defaultRender'>,
-    ICommonTableProps {
+  extends Omit<ITableColumnParams, 'defaultRender'>, ICommonTableProps {
   expanded?: boolean;
   onExpandChange?: () => void;
   /** 行的唯一 key（用于 checkbox/radio 状态匹配） */

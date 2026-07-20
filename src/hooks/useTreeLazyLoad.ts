@@ -93,7 +93,6 @@ export const useTreeLazyLoad = ({
         if (isFunction(config.onLoadError)) {
           config.onLoadError({ row, error });
         } else if (__DEV__) {
-          // eslint-disable-next-line no-console
           console.warn(
             '[CoolTable] loadChildren failed for row:',
             rowKey,

@@ -488,14 +488,14 @@ const Cell = (
       const isFixedLeftCol = fixed === true || fixed === 'left';
       const textAlign = isFixedLeftCol
         ? ('left' as const)
-        : col.align ?? 'left';
+        : (col.align ?? 'left');
       const cellStyle = [
         styles.text,
         {
           textAlign,
           color: isHeader
-            ? tableHeaderTextColor ?? '#929AA6'
-            : tableTextColor ?? '#1F2733',
+            ? (tableHeaderTextColor ?? '#929AA6')
+            : (tableTextColor ?? '#1F2733'),
         },
         isHeader ? hTextStyle : textStyle,
         index >= 1 && styles.second_text,

@@ -118,7 +118,6 @@ const Table = (
   // === DEV warnings ===
   useEffect(() => {
     if (__DEV__ && !rowKey && !keyExtractor) {
-      // eslint-disable-next-line no-console
       console.warn(
         '[CoolTable] Neither "rowKey" nor "keyExtractor" is provided. ' +
           'Row keys will fall back to array indices, which may cause unexpected behavior when data changes. ' +
