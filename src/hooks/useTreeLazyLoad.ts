@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { isFunction } from 'lodash';
 import type { TExpandable, TItem } from '../types';
+import { createMountGuard, type IMountGuard } from '../utils/createMountGuard';
 
 interface IUseTreeLazyLoadParams {
   treeConfig?: TExpandable;
@@ -38,12 +39,18 @@ export const useTreeLazyLoad = ({
   // 正在加载中的 key（同步镜像，用于 in-flight 去重，不受 setState 异步影响）
   const inflightKeysRef = useRef<Set<string>>(new Set());
 
-  // 卸载守卫：避免异步 loadChildren resolve 后对已卸载组件 setState
-  const mountedRef = useRef(true);
+  // 卸载守卫：避免异步 loadChildren resolve 后对已卸载组件 setState。
+  // 使用 createMountGuard 而非裸 useRef(boolean)，原因：
+  //   1. 内聚了 deactivate + reactivate 语义，逻辑可被独立单元测试验证；
+  //   2. 在 React 18 StrictMode（mount → cleanup → remount）下，
+  //      cleanup 会调 deactivate，remount body 会调 reactivate 恢复守卫，
+  //      确保 remount 后的 triggerLoad 不会永久被守卫拦截。
+  const guardRef = useRef<IMountGuard>(createMountGuard());
   useEffect(() => {
-    mountedRef.current = true;
+    const guard = guardRef.current;
+    guard.reactivate();
     return () => {
-      mountedRef.current = false;
+      guard.deactivate();
     };
   }, []);
 
@@ -76,7 +83,7 @@ export const useTreeLazyLoad = ({
         const children = await config.loadChildren({ row, rowIndex });
 
         // 组件已卸载则不再更新状态
-        if (!mountedRef.current) return;
+        if (!guardRef.current.isActive()) return;
 
         // Store children and mark as loaded
         setChildrenMap((prev) => {
@@ -103,7 +110,7 @@ export const useTreeLazyLoad = ({
       } finally {
         inflightKeysRef.current.delete(rowKey);
         // Remove from loading（组件已卸载则跳过）
-        if (mountedRef.current) {
+        if (guardRef.current.isActive()) {
           setLoadingKeys((prev) => {
             const next = new Set(prev);
             next.delete(rowKey);

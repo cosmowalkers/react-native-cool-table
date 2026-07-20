@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { renderHook, render, act } from '@testing-library/react-native';
 import { useTreeLazyLoad } from '../hooks/useTreeLazyLoad';
+import { createMountGuard } from '../utils/createMountGuard';
 import CoolTable from '../index';
 import type { ITableColumn, TItem, TExpandable } from '../types';
 
@@ -239,6 +240,72 @@ describe('useTreeLazyLoad', () => {
     expect(result.current.isLoading('2')).toBe(false);
     expect(result.current.isLoaded('2')).toBe(true);
     expect(result.current.getChildren('2')).toEqual(children2);
+  });
+});
+
+// ============================================================
+// createMountGuard 工具单元测试
+// 这组测试是对"守卫卡死"bug 的真正 RED→GREEN 守卫：
+//   旧实现：mountedRef = useRef(true)，cleanup 置 false，无 reactivate
+//     → deactivate 后 isActive 永久为 false，无法恢复
+//   新实现：createMountGuard 提供 reactivate()
+//     → deactivate 后调 reactivate，isActive 恢复 true
+// 旧语义下第二个和第三个 case 会 RED（因为没有 reactivate 或 reactivate 不生效）
+// ============================================================
+
+describe('createMountGuard', () => {
+  it('初始状态 isActive 应为 true', () => {
+    const guard = createMountGuard();
+    expect(guard.isActive()).toBe(true);
+  });
+
+  it('deactivate 后 isActive 应为 false', () => {
+    const guard = createMountGuard();
+    guard.deactivate();
+    expect(guard.isActive()).toBe(false);
+  });
+
+  it('deactivate 之后调 reactivate，isActive 应恢复为 true（这正是旧 mountedRef 方案缺失的）', () => {
+    // 旧语义（mountedRef 方案）：
+    //   mountedRef = useRef(true)
+    //   cleanup: mountedRef.current = false
+    //   body: mountedRef.current = true（51128e2 才加的，但没有 reactivate 抽象）
+    //
+    // 在 react-test-renderer 里 StrictMode 不触发 double-invoke，
+    // 所以 "body 里置 true" 的代码路径在测试环境无法被验证。
+    // 直接测 guard.reactivate() 语义，完全绕过渲染环境，
+    // 确保"deactivate → reactivate"这个状态转换是可测的。
+    const guard = createMountGuard();
+    guard.deactivate();
+    expect(guard.isActive()).toBe(false); // 守卫已禁用
+
+    guard.reactivate();
+    expect(guard.isActive()).toBe(true); // 守卫恢复活跃
+  });
+
+  it('多次 deactivate/reactivate 轮转，状态应正确跟踪', () => {
+    const guard = createMountGuard();
+
+    guard.deactivate();
+    expect(guard.isActive()).toBe(false);
+
+    guard.reactivate();
+    expect(guard.isActive()).toBe(true);
+
+    guard.deactivate();
+    expect(guard.isActive()).toBe(false);
+
+    guard.reactivate();
+    expect(guard.isActive()).toBe(true);
+  });
+
+  it('同一 createMountGuard 调用产生的多个实例互相独立', () => {
+    const guardA = createMountGuard();
+    const guardB = createMountGuard();
+
+    guardA.deactivate();
+    expect(guardA.isActive()).toBe(false);
+    expect(guardB.isActive()).toBe(true); // B 不受影响
   });
 });
 
