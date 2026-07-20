@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import type * as React from 'react';
 import { isFunction } from 'lodash';
 import type { ICheckboxConfig, ITableProps, TItem } from '../types';
 import { buildRowKey } from '../utils';

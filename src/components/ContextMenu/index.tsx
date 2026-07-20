@@ -1,5 +1,5 @@
 import { isFunction } from 'lodash';
-import React, { forwardRef, memo, useCallback, useMemo } from 'react';
+import { forwardRef, memo, useCallback, useMemo } from 'react';
 import { Modal, Text, TouchableOpacity, View } from 'react-native';
 import type { IContextMenuConfig, IContextMenuItem } from '../../types';
 import type { IMenuState } from '../../hooks/useContextMenu';

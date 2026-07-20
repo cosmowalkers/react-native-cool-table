@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, render } from '@testing-library/react-native';
 import { useCellMerge } from '../hooks/useCellMerge';
 import CoolTable from '../index';

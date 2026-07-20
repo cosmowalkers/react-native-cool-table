@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { forwardRef, memo } from 'react';
+import { forwardRef, memo } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import type { StyleProp, ViewStyle, TextStyle } from 'react-native';
 import type { IValidationError } from '../../types';

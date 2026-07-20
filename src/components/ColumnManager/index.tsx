@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { forwardRef, memo, useState, useCallback } from 'react';
+import { forwardRef, memo, useState, useCallback } from 'react';
 import {
   View,
   Text,

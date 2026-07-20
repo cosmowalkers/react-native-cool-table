@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import type * as React from 'react';
 import type { IRadioConfig, ITableProps, TItem } from '../types';
 import { buildRowKey } from '../utils';
 import useUpdateEffect from './useUpdateEffect';

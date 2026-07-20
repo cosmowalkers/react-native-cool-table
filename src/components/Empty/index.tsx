@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { View, Image, Text } from 'react-native';
 import type { IEmptyProps } from '../../types';
 import { EMPTY_IMAGE } from '../../constant';

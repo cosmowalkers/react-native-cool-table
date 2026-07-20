@@ -1,4 +1,3 @@
-import React from 'react';
 import { renderHook, render, act } from '@testing-library/react-native';
 import { useTreeLazyLoad } from '../hooks/useTreeLazyLoad';
 import CoolTable from '../index';

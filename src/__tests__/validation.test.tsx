@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { renderHook, render, act } from '@testing-library/react-native';
 import { useValidation } from '../hooks/useValidation';
@@ -12,7 +12,7 @@ import type {
 
 /** Helper to create a ref compatible with CoolTable's expected MutableRefObject type */
 const createTableRef = (): MutableRefObject<ICoolTableRef> =>
-  React.createRef<ICoolTableRef>() as MutableRefObject<ICoolTableRef>;
+  createRef<ICoolTableRef>() as MutableRefObject<ICoolTableRef>;
 
 // ============================================================
 // Test data

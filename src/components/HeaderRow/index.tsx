@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { forwardRef, memo, useCallback } from 'react';
+import { forwardRef, memo, useCallback } from 'react';
 import { Animated, View, Text } from 'react-native';
 import type { ViewStyle, StyleProp } from 'react-native';
 import { isEmpty, isFunction } from 'lodash';

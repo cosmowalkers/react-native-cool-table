@@ -1,5 +1,5 @@
 import { isFunction } from 'lodash';
-import React, {
+import {
   forwardRef,
   memo,
   useCallback,

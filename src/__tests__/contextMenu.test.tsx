@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   renderHook,
   render,
@@ -210,10 +209,10 @@ describe('ContextMenu', () => {
   it('should support custom render via config.render', () => {
     const config: IContextMenuConfig = {
       render: ({ row, close }) => (
-        <React.Fragment>
-          <React.Fragment>{`Custom: ${row.name}`}</React.Fragment>
-          <React.Fragment>{String(typeof close)}</React.Fragment>
-        </React.Fragment>
+        <>
+          <>{`Custom: ${row.name}`}</>
+          <>{String(typeof close)}</>
+        </>
       ),
     };
     const { getByTestId } = render(

@@ -1,4 +1,4 @@
-import React from 'react';
+import { createRef } from 'react';
 import type { MutableRefObject } from 'react';
 import { renderHook, render, act } from '@testing-library/react-native';
 import { useEditableCell } from '../hooks/useEditableCell';
@@ -7,7 +7,7 @@ import type { ITableColumn, TItem, IEditConfig, ICoolTableRef } from '../types';
 
 /** Helper to create a ref compatible with CoolTable's expected MutableRefObject type */
 const createTableRef = (): MutableRefObject<ICoolTableRef> =>
-  React.createRef<ICoolTableRef>() as MutableRefObject<ICoolTableRef>;
+  createRef<ICoolTableRef>() as MutableRefObject<ICoolTableRef>;
 
 // ============================================================
 // Test data

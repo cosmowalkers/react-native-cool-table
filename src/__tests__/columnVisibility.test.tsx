@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { render, renderHook, act } from '@testing-library/react-native';
 import { useColumnVisibility } from '../hooks/useColumnVisibility';
 import CoolTable from '../index';

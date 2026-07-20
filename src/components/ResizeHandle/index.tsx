@@ -1,6 +1,6 @@
 'use strict';
 
-import React, { forwardRef, memo, useRef, useState, useMemo } from 'react';
+import { forwardRef, memo, useRef, useState, useMemo } from 'react';
 import { View, PanResponder } from 'react-native';
 import styles from './styles';
 

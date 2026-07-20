@@ -1,6 +1,7 @@
 'use strict';
 
-import React, {
+import type * as React from 'react';
+import {
   isValidElement,
   forwardRef,
   memo,

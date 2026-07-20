@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type * as React from 'react';
 import type {
   StyleProp,
   TextStyle,
@@ -140,7 +140,7 @@ export type TBorderType = 'full' | 'outer' | 'inner' | 'none';
 
 export interface ILoadingConfig {
   /** 自定义 loading 组件 */
-  render?: () => ReactNode;
+  render?: () => React.ReactNode;
   /** loading 文字 */
   text?: string;
   /** 遮罩层样式（覆盖默认白色半透明背景） */
@@ -228,22 +228,22 @@ export type TExpandable = {
     index: number;
     columns: ITableColumn[];
     depth: number;
-    defaultRender: (params: { item: TItem; index: number }) => ReactNode;
-  }) => ReactNode;
+    defaultRender: (params: { item: TItem; index: number }) => React.ReactNode;
+  }) => React.ReactNode;
   renderExpand?: (params: {
     data: TItem[];
     parentData: TItem;
     index: number;
     columns: ITableColumn[];
     depth: number;
-  }) => ReactNode;
+  }) => React.ReactNode;
 
   // === P0+P1 新增字段 ===
 
   /** 异步加载子节点 */
   loadChildren?: (params: { row: TItem; rowIndex: number }) => Promise<TItem[]>;
   /** 自定义加载中渲染 */
-  renderLoading?: () => ReactNode;
+  renderLoading?: () => React.ReactNode;
   /** 是否缓存已加载的子节点 */
   cacheChildren?: boolean;
   /** 异步加载失败回调 */
@@ -267,7 +267,7 @@ export interface ITableColumnParams {
   row: TItem;
   rowIndex: number;
   colIndex: number;
-  defaultRender?: () => ReactNode;
+  defaultRender?: () => React.ReactNode;
   isHeader?: boolean;
 }
 
@@ -303,9 +303,9 @@ export interface ITableColumn {
   /** 点击回调 */
   onPress?: (params: Omit<ITableColumnParams, 'defaultRender'>) => void;
   /** 自定义 body 渲染 */
-  render?: (params: ITableColumnParams) => ReactNode;
+  render?: (params: ITableColumnParams) => React.ReactNode;
   /** 自定义 header 渲染 */
-  renderHeader?: (params: ITableColumnParams) => ReactNode;
+  renderHeader?: (params: ITableColumnParams) => React.ReactNode;
   /** 是否可排序 */
   sortable?: boolean;
   /** 排序回调 */
@@ -338,7 +338,7 @@ export interface ITableColumn {
     filters: IFilterOption[];
     confirm: (values: (string | number | boolean)[]) => void;
     reset: () => void;
-  }) => ReactNode;
+  }) => React.ReactNode;
   /** 自定义排序比较函数（本地排序时使用） */
   sorter?: (a: TItem, b: TItem) => number;
 
@@ -362,7 +362,7 @@ export interface ITableColumn {
     setValue: (val: unknown) => void;
     save: () => void;
     cancel: () => void;
-  }) => ReactNode;
+  }) => React.ReactNode;
   /** 编辑校验规则 */
   editRules?: IEditRule[];
   /** 编辑 select 类型的选项 */
@@ -751,7 +751,7 @@ export interface IDragSortConfig {
     toIndex: number;
   }) => void;
   /** 自定义拖拽手柄渲染 */
-  renderHandle?: () => ReactNode;
+  renderHandle?: () => React.ReactNode;
   /** 判断行是否可拖拽 */
   dragMethod?: (params: { row: TItem; rowIndex: number }) => boolean;
 }
@@ -783,7 +783,7 @@ export interface IPaginationConfig {
     total: number;
     onPageChange: (page: number) => void;
     onPageSizeChange: (size: number) => void;
-  }) => ReactNode;
+  }) => React.ReactNode;
   /** 分页容器样式 */
   style?: StyleProp<ViewStyle>;
 }
@@ -804,7 +804,7 @@ export interface IEllipsisConfig {
     text: string;
     column: ITableColumn;
     row: TItem;
-  }) => ReactNode;
+  }) => React.ReactNode;
 }
 
 // ============================================================
@@ -868,7 +868,7 @@ export interface IValidationConfig {
 export interface IContextMenuItem {
   key: string;
   label: string;
-  icon?: ReactNode;
+  icon?: React.ReactNode;
   disabled?: boolean;
   danger?: boolean;
   onPress?: (params: {
@@ -888,7 +888,7 @@ export interface IContextMenuConfig {
     column?: ITableColumn;
   }) => IContextMenuItem[];
   /** 自定义菜单渲染 */
-  render?: (params: { row: TItem; close: () => void }) => ReactNode;
+  render?: (params: { row: TItem; close: () => void }) => React.ReactNode;
 }
 
 // ============================================================

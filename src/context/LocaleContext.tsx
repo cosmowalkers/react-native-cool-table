@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useMemo } from 'react';
+import type * as React from 'react';
+import { createContext, useContext, useMemo } from 'react';
 import type { ILocale } from '../types';
 import zhCN from '../locale/zhCN';
 

@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import { createRef } from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import CoolTable from '../index';
 import type { ITableColumn, TItem, ICoolTableRef } from '../types';

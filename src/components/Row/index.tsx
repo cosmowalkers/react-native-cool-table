@@ -1,4 +1,4 @@
-import React, { forwardRef, memo, useCallback, useMemo } from 'react';
+import { forwardRef, memo, useCallback, useMemo } from 'react';
 import {
   Animated,
   View,
@@ -8,7 +8,7 @@ import {
   ActivityIndicator,
   StyleSheet,
 } from 'react-native';
-import type { ViewStyle } from 'react-native';
+import type { ViewStyle, DimensionValue } from 'react-native';
 import type { ITableRowProps, TItem, ITableColumn } from '../../types';
 import { isArray, isEmpty, isFunction } from 'lodash';
 import { ALIGN_MAP } from '../../constant';
@@ -289,7 +289,7 @@ const Row = (
         !isHeader && getCellSpan ? getCellSpan(rowIndex, colIndex) : null;
       const colspanCount = spanResult ? spanResult.colspan : 1;
 
-      let mergedWidth: number | string | undefined;
+      let mergedWidth: DimensionValue | undefined;
       if (colspanCount > 1) {
         // Sum widths of all merged columns
         let totalWidth = 0;
@@ -303,7 +303,7 @@ const Row = (
         }
         mergedWidth = totalWidth > 0 ? totalWidth : undefined;
       } else {
-        mergedWidth = columnWidths?.get(column.key) ?? width;
+        mergedWidth = columnWidths?.get(column.key) ?? (width as DimensionValue);
       }
       if (mergedWidth) _cellStyle.push({ width: mergedWidth });
       if (alignRes) _cellStyle.push({ alignItems: alignRes });

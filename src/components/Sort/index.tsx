@@ -1,4 +1,4 @@
-import React, { memo } from 'react';
+import { memo } from 'react';
 import { View, Text } from 'react-native';
 import type { ITableSortProps } from '../../types';
 import styles from './styles';
