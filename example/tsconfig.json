@@ -6,8 +6,12 @@
       "esnext"
     ],
     "paths": {
-      "react-native-cool-table": ["./../src/index"],
-      "react": ["./node_modules/@types/react"],
+      "react-native-cool-table": [
+        "./../src/index"
+      ],
+      "react": [
+        "./node_modules/@types/react"
+      ]
     },
     "allowJs": true,
     "skipLibCheck": true,
@@ -16,5 +20,6 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "moduleResolution": "node"
-  }
+  },
+  "extends": "expo/tsconfig.base"
 }
